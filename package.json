@@ -1,0 +1,21 @@
+{
+  "name": "reviewgate",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev --local --ip 0.0.0.0 --port 3000",
+    "dev:d1": "wrangler dev --local --ip 0.0.0.0 --port 3000",
+    "deploy": "wrangler deploy",
+    "db:migrate": "wrangler d1 migrations apply reviewgate-production --local",
+    "db:seed": "wrangler d1 execute reviewgate-production --local --file=./seed.sql",
+    "db:reset": "rm -rf .wrangler/state && npm run db:migrate && npm run db:seed"
+  },
+  "dependencies": {
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250705.0",
+    "typescript": "^5.0.0",
+    "wrangler": "^3.78.0"
+  }
+}

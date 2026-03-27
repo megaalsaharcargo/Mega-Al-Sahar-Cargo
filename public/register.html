@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account — ReviewGate</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .tab-active { background: white; color: #6366f1; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .input-field { width: 100%; padding: 12px 16px; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+    .input-field:focus { border-color: #6366f1; }
+    .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; width: 100%; padding: 13px; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; font-size: 1rem; transition: opacity 0.2s; }
+    .btn-primary:hover { opacity: 0.9; }
+    .error-msg { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; }
+    .success-msg { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; }
+  </style>
+</head>
+<body class="min-h-screen bg-gray-50 flex">
+  <!-- Left Panel -->
+  <div class="hidden lg:flex lg:w-1/2 gradient-bg text-white flex-col justify-center px-16">
+    <div class="flex items-center gap-3 mb-12">
+      <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-bold text-xl">R</div>
+      <span class="text-2xl font-bold">ReviewGate</span>
+    </div>
+    <h1 class="text-4xl font-extrabold mb-4 leading-tight" id="left-title">Start Earning Today!</h1>
+    <p class="text-xl text-white/80 mb-10" id="left-desc">Create your customer account and start earning money for writing honest reviews.</p>
+    <div id="left-perks" class="space-y-4">
+      <div class="flex items-center gap-3">
+        <i class="fas fa-check-circle text-green-300"></i>
+        <span>Earn $5 - $100 per review campaign</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <i class="fas fa-check-circle text-green-300"></i>
+        <span>Get paid via PayPal — fast and easy</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <i class="fas fa-check-circle text-green-300"></i>
+        <span>No minimum payout threshold</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <i class="fas fa-check-circle text-green-300"></i>
+        <span>100% authentic — we value honesty</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="flex-1 flex items-center justify-center px-6 py-12 overflow-y-auto">
+    <div class="w-full max-w-md">
+      <div class="lg:hidden flex items-center gap-2 mb-8 justify-center">
+        <div class="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center text-white font-bold text-lg">R</div>
+        <span class="text-xl font-bold">ReviewGate</span>
+      </div>
+      <h2 class="text-3xl font-extrabold text-gray-900 mb-2">Create Account</h2>
+      <p class="text-gray-500 mb-8">Choose your account type</p>
+
+      <!-- Tab Switcher -->
+      <div class="flex bg-gray-100 p-1 rounded-xl mb-6">
+        <button onclick="switchTab('customer')" id="tab-customer" class="flex-1 py-2.5 rounded-lg font-semibold text-sm transition tab-active">
+          <i class="fas fa-user mr-1"></i> Customer
+        </button>
+        <button onclick="switchTab('business')" id="tab-business" class="flex-1 py-2.5 rounded-lg font-semibold text-sm transition text-gray-500">
+          <i class="fas fa-building mr-1"></i> Business
+        </button>
+      </div>
+
+      <div id="msg" class="hidden mb-4"></div>
+
+      <form onsubmit="doRegister(event)" id="reg-form">
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+          <input type="text" id="name" class="input-field" placeholder="Your name" required>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
+          <input type="email" id="email" class="input-field" placeholder="you@example.com" required>
+        </div>
+        <!-- Business-only fields -->
+        <div id="biz-fields" class="hidden">
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Business Industry</label>
+            <select id="industry" class="input-field">
+              <option>Food & Beverage</option>
+              <option>Retail</option>
+              <option>Health & Wellness</option>
+              <option>Home Services</option>
+              <option>Professional Services</option>
+              <option>Hospitality</option>
+              <option>Automotive</option>
+              <option>Education</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Website (optional)</label>
+            <input type="url" id="website" class="input-field" placeholder="https://yourbusiness.com">
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+          <input type="password" id="password" class="input-field" placeholder="Min 6 characters" required minlength="6">
+        </div>
+        <div class="mb-6">
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Confirm Password</label>
+          <input type="password" id="confirm-password" class="input-field" placeholder="Repeat password" required>
+        </div>
+        <button type="submit" class="btn-primary" id="submit-btn">
+          <i class="fas fa-user-plus mr-2"></i> Create Account
+        </button>
+      </form>
+
+      <div class="mt-6 text-center text-sm text-gray-500">
+        Already have an account? <a href="/login.html" class="text-indigo-600 font-semibold hover:underline">Sign in</a>
+      </div>
+      <div class="mt-3 text-center text-sm">
+        <a href="/" class="text-gray-400 hover:text-gray-600">← Back to home</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let regType = 'customer'
+
+    const urlParams = new URLSearchParams(window.location.search)
+    const paramType = urlParams.get('type')
+    if (paramType === 'business') switchTab('business')
+
+    function switchTab(type) {
+      regType = type
+      document.querySelectorAll('[id^="tab-"]').forEach(t => {
+        t.classList.remove('tab-active')
+        t.classList.add('text-gray-500')
+      })
+      const btn = document.getElementById('tab-' + type)
+      btn.classList.add('tab-active')
+      btn.classList.remove('text-gray-500')
+
+      const bizFields = document.getElementById('biz-fields')
+      const leftTitle = document.getElementById('left-title')
+      const leftDesc = document.getElementById('left-desc')
+      const leftPerks = document.getElementById('left-perks')
+
+      if (type === 'business') {
+        bizFields.classList.remove('hidden')
+        leftTitle.textContent = 'Grow Your Reviews!'
+        leftDesc.textContent = 'Set up your business account and start collecting authentic reviews from real customers.'
+        leftPerks.innerHTML = `
+          <div class="flex items-center gap-3"><i class="fas fa-check-circle text-green-300"></i><span>50 free invites every month</span></div>
+          <div class="flex items-center gap-3"><i class="fas fa-check-circle text-green-300"></i><span>Multi-platform review collection</span></div>
+          <div class="flex items-center gap-3"><i class="fas fa-check-circle text-green-300"></i><span>Real-time analytics dashboard</span></div>
+          <div class="flex items-center gap-3"><i class="fas fa-check-circle text-green-300"></i><span>100% FTC compliant</span></div>
+        `
+      } else {
+        bizFields.classList.add('hidden')
+        leftTitle.textContent = 'Start Earning Today!'
+        leftDesc.textContent = 'Create your customer account and start earning money for writing honest reviews.'
+        leftPerks.innerHTML = `
+          <div class="flex items-center gap-3"><i class="fas fa-check-circle text-green-300"></i><span>Earn $5 - $100 per review campaign</span></div>
+          <div class="flex items-center gap-3"><i class="fas fa-check-circle text-green-300"></i><span>Get paid via PayPal — fast and easy</span></div>
+          <div class="flex items-center gap-3"><i class="fas fa-check-circle text-green-300"></i><span>No minimum payout threshold</span></div>
+          <div class="flex items-center gap-3"><i class="fas fa-check-circle text-green-300"></i><span>100% authentic — we value honesty</span></div>
+        `
+      }
+    }
+
+    function showMsg(text, type) {
+      const el = document.getElementById('msg')
+      el.className = type === 'error' ? 'error-msg mb-4' : 'success-msg mb-4'
+      el.textContent = text
+      el.classList.remove('hidden')
+    }
+
+    async function doRegister(e) {
+      e.preventDefault()
+      const password = document.getElementById('password').value
+      const confirm = document.getElementById('confirm-password').value
+      if (password !== confirm) { showMsg('Passwords do not match', 'error'); return }
+
+      const btn = document.getElementById('submit-btn')
+      btn.disabled = true
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Creating account...'
+
+      try {
+        const body = {
+          name: document.getElementById('name').value,
+          email: document.getElementById('email').value,
+          password,
+          type: regType,
+          industry: document.getElementById('industry')?.value,
+          website: document.getElementById('website')?.value
+        }
+
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        })
+        const data = await res.json()
+
+        if (data.error) {
+          showMsg(data.error, 'error')
+          btn.disabled = false
+          btn.innerHTML = '<i class="fas fa-user-plus mr-2"></i> Create Account'
+          return
+        }
+
+        localStorage.setItem('rg_token', data.token)
+        localStorage.setItem('rg_user', JSON.stringify(data.user))
+        localStorage.setItem('rg_type', data.type)
+
+        showMsg('Account created! Redirecting...', 'success')
+        setTimeout(() => {
+          if (data.type === 'business') window.location.href = '/dashboard/business.html'
+          else window.location.href = '/dashboard/customer.html'
+        }, 600)
+      } catch (err) {
+        showMsg('Network error. Please try again.', 'error')
+        btn.disabled = false
+        btn.innerHTML = '<i class="fas fa-user-plus mr-2"></i> Create Account'
+      }
+    }
+  </script>
+</body>
+</html>

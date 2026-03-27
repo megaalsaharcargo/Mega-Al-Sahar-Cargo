@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business Dashboard — ReviewGate</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .sidebar { width: 260px; min-height: 100vh; background: #1e1b4b; }
+    .sidebar-link { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-radius: 10px; cursor: pointer; transition: all 0.2s; color: #a5b4fc; font-weight: 500; }
+    .sidebar-link:hover, .sidebar-link.active { background: rgba(99,102,241,0.2); color: white; }
+    .sidebar-link.active { border-left: 3px solid #6366f1; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .stat-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #f3f4f6; }
+    .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.2s; font-size: 0.9rem; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-success { background: #10b981; color: white; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.2s; }
+    .btn-success:hover { opacity: 0.9; }
+    .badge { padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .badge-green { background: #d1fae5; color: #065f46; }
+    .badge-yellow { background: #fef3c7; color: #92400e; }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .badge-purple { background: #ede9fe; color: #5b21b6; }
+    .input-field { width: 100%; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 0.9rem; outline: none; }
+    .input-field:focus { border-color: #6366f1; }
+    .stars { color: #f59e0b; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #1e1b4b; color: white; padding: 14px 20px; border-radius: 12px; font-size: 0.9rem; z-index: 9999; transform: translateY(100px); transition: transform 0.3s; }
+    .toast.show { transform: translateY(0); }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+    .modal.open { display: flex; }
+    .plan-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+    .plan-starter { background: #f3f4f6; color: #374151; }
+    .plan-growth { background: #ede9fe; color: #5b21b6; }
+    .plan-enterprise { background: #fef3c7; color: #92400e; }
+  </style>
+</head>
+<body class="bg-gray-50 flex">
+
+  <!-- Sidebar -->
+  <div class="sidebar flex flex-col">
+    <div class="p-6 border-b border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center text-white font-bold">R</div>
+        <span class="text-white text-lg font-bold">ReviewGate</span>
+      </div>
+    </div>
+    <div class="p-4 border-b border-white/10">
+      <div class="text-white font-semibold text-sm" id="nav-biz-name">Loading...</div>
+      <div class="mt-1 flex items-center gap-2">
+        <span class="plan-badge plan-starter" id="nav-plan-badge">starter</span>
+        <span class="text-indigo-300 text-xs" id="nav-invite-count">0 invites sent</span>
+      </div>
+    </div>
+    <nav class="flex-1 p-4 space-y-1">
+      <div class="sidebar-link active" onclick="showPage('overview')"><i class="fas fa-tachometer-alt w-5"></i> Overview</div>
+      <div class="sidebar-link" onclick="showPage('reviews')"><i class="fas fa-star w-5"></i> Reviews</div>
+      <div class="sidebar-link" onclick="showPage('invites')"><i class="fas fa-paper-plane w-5"></i> Send Invites</div>
+      <div class="sidebar-link" onclick="showPage('analytics')"><i class="fas fa-chart-bar w-5"></i> Analytics</div>
+      <div class="sidebar-link" onclick="showPage('profile')"><i class="fas fa-building w-5"></i> Business Profile</div>
+      <div class="sidebar-link" onclick="showPage('billing')"><i class="fas fa-credit-card w-5"></i> Billing & Plan</div>
+    </nav>
+    <div class="p-4 border-t border-white/10">
+      <button onclick="logout()" class="sidebar-link w-full text-red-400 hover:text-red-300 hover:bg-red-900/20">
+        <i class="fas fa-sign-out-alt w-5"></i> Sign Out
+      </button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="flex-1 overflow-auto">
+    <div class="bg-white border-b px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div>
+        <h1 class="text-xl font-bold text-gray-900" id="page-title">Overview</h1>
+        <p class="text-gray-400 text-sm" id="page-date"></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="showPage('invites')" class="btn-primary">
+          <i class="fas fa-paper-plane mr-2"></i> Send Invite
+        </button>
+      </div>
+    </div>
+
+    <div class="p-8">
+
+      <!-- ── OVERVIEW ─────────────────────────────────── -->
+      <div class="page active" id="page-overview">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-gray-500 text-sm">Total Reviews</div>
+              <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center"><i class="fas fa-star text-indigo-500 text-sm"></i></div>
+            </div>
+            <div class="text-3xl font-extrabold text-gray-900" id="stat-reviews">0</div>
+            <div class="text-xs text-green-500 mt-1" id="stat-reviews-change"></div>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-gray-500 text-sm">Avg Rating</div>
+              <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center"><i class="fas fa-award text-yellow-500 text-sm"></i></div>
+            </div>
+            <div class="text-3xl font-extrabold text-gray-900" id="stat-rating">0.0</div>
+            <div class="text-xs text-yellow-600 mt-1">★ out of 5</div>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-gray-500 text-sm">Total Invites</div>
+              <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"><i class="fas fa-envelope text-blue-500 text-sm"></i></div>
+            </div>
+            <div class="text-3xl font-extrabold text-gray-900" id="stat-invites">0</div>
+            <div class="text-xs text-gray-400 mt-1">
+              <span id="stat-invites-used">0</span> this month
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-gray-500 text-sm">Conversion</div>
+              <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center"><i class="fas fa-percentage text-green-500 text-sm"></i></div>
+            </div>
+            <div class="text-3xl font-extrabold text-gray-900" id="stat-conversion">0%</div>
+            <div class="text-xs text-gray-400 mt-1">Invite to review rate</div>
+          </div>
+        </div>
+
+        <!-- Recent Reviews -->
+        <div class="bg-white rounded-2xl border border-gray-100 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-lg">Recent Reviews</h3>
+            <button onclick="showPage('reviews')" class="text-indigo-600 text-sm font-semibold hover:underline">View All →</button>
+          </div>
+          <div id="overview-reviews"></div>
+        </div>
+      </div>
+
+      <!-- ── REVIEWS ─────────────────────────────────── -->
+      <div class="page" id="page-reviews">
+        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div class="p-6 border-b flex items-center justify-between">
+            <h3 class="font-bold text-lg">All Reviews</h3>
+            <div class="flex gap-2">
+              <select id="review-filter-platform" class="input-field" style="width:auto;padding:6px 12px" onchange="filterReviews()">
+                <option value="">All Platforms</option>
+                <option value="google">Google</option>
+                <option value="trustpilot">Trustpilot</option>
+                <option value="facebook">Facebook</option>
+                <option value="yelp">Yelp</option>
+                <option value="tripadvisor">TripAdvisor</option>
+              </select>
+              <select id="review-filter-rating" class="input-field" style="width:auto;padding:6px 12px" onchange="filterReviews()">
+                <option value="">All Ratings</option>
+                <option value="5">★★★★★</option>
+                <option value="4">★★★★</option>
+                <option value="3">★★★</option>
+                <option value="2">★★</option>
+                <option value="1">★</option>
+              </select>
+            </div>
+          </div>
+          <div id="reviews-container" class="p-6">
+            <div class="text-center py-8 text-gray-400"><i class="fas fa-spinner fa-spin text-2xl"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── INVITES ──────────────────────────────────── -->
+      <div class="page" id="page-invites">
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Single Invite -->
+          <div class="bg-white rounded-2xl border border-gray-100 p-6">
+            <h3 class="font-bold text-lg mb-4"><i class="fas fa-user mr-2 text-indigo-500"></i>Send Single Invite</h3>
+            <div class="mb-3">
+              <label class="block text-sm font-semibold mb-1">Customer Email *</label>
+              <input type="email" id="inv-email" class="input-field" placeholder="customer@example.com">
+            </div>
+            <div class="mb-3">
+              <label class="block text-sm font-semibold mb-1">Customer Name</label>
+              <input type="text" id="inv-name" class="input-field" placeholder="John Smith">
+            </div>
+            <div class="mb-3">
+              <label class="block text-sm font-semibold mb-1">Review Platform</label>
+              <select id="inv-platform" class="input-field">
+                <option value="google">Google Business</option>
+                <option value="trustpilot">Trustpilot</option>
+                <option value="facebook">Facebook</option>
+                <option value="yelp">Yelp</option>
+                <option value="tripadvisor">TripAdvisor</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="block text-sm font-semibold mb-1">Points Offered</label>
+              <select id="inv-points" class="input-field">
+                <option value="50">50 pts ($0.50)</option>
+                <option value="100" selected>100 pts ($1.00)</option>
+                <option value="150">150 pts ($1.50)</option>
+                <option value="200">200 pts ($2.00)</option>
+                <option value="300">300 pts ($3.00)</option>
+              </select>
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-semibold mb-1">Custom Message (optional)</label>
+              <textarea id="inv-message" class="input-field" rows="3" placeholder="Thank you for visiting! We'd love to hear your feedback..."></textarea>
+            </div>
+            <div id="inv-result" class="hidden mb-3"></div>
+            <button onclick="sendSingleInvite()" class="btn-primary w-full">
+              <i class="fas fa-paper-plane mr-2"></i> Send Invitation
+            </button>
+          </div>
+
+          <!-- Bulk Invite -->
+          <div class="bg-white rounded-2xl border border-gray-100 p-6">
+            <h3 class="font-bold text-lg mb-4"><i class="fas fa-users mr-2 text-green-500"></i>Bulk Invite</h3>
+            <div class="mb-3">
+              <label class="block text-sm font-semibold mb-1">Customer List (CSV format)</label>
+              <textarea id="bulk-customers" class="input-field font-mono text-xs" rows="6" placeholder="email,name&#10;john@example.com,John Smith&#10;jane@example.com,Jane Doe&#10;mike@example.com,Mike Johnson"></textarea>
+              <p class="text-xs text-gray-400 mt-1">Format: email,name (one per line)</p>
+            </div>
+            <div class="mb-3">
+              <label class="block text-sm font-semibold mb-1">Platform</label>
+              <select id="bulk-platform" class="input-field">
+                <option value="google">Google Business</option>
+                <option value="trustpilot">Trustpilot</option>
+                <option value="facebook">Facebook</option>
+                <option value="yelp">Yelp</option>
+                <option value="tripadvisor">TripAdvisor</option>
+              </select>
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-semibold mb-1">Points per Review</label>
+              <select id="bulk-points" class="input-field">
+                <option value="100" selected>100 pts ($1.00)</option>
+                <option value="150">150 pts ($1.50)</option>
+                <option value="200">200 pts ($2.00)</option>
+              </select>
+            </div>
+            <div id="bulk-result" class="hidden mb-3"></div>
+            <button onclick="sendBulkInvite()" class="btn-success w-full">
+              <i class="fas fa-upload mr-2"></i> Send Bulk Invitations
+            </button>
+
+            <!-- Recent Invitations -->
+            <div class="mt-6 border-t pt-4">
+              <h4 class="font-semibold text-sm mb-3">Recent Invitations</h4>
+              <div id="recent-invites" class="space-y-2 text-sm">
+                <div class="text-gray-400 text-center py-2">Loading...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ANALYTICS ────────────────────────────────── -->
+      <div class="page" id="page-analytics">
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="bg-white rounded-2xl border border-gray-100 p-6">
+            <h3 class="font-bold text-lg mb-4">Rating Distribution</h3>
+            <canvas id="rating-chart" height="200"></canvas>
+          </div>
+          <div class="bg-white rounded-2xl border border-gray-100 p-6">
+            <h3 class="font-bold text-lg mb-4">Reviews by Platform</h3>
+            <canvas id="platform-chart" height="200"></canvas>
+          </div>
+          <div class="bg-white rounded-2xl border border-gray-100 p-6 md:col-span-2">
+            <h3 class="font-bold text-lg mb-4">Monthly Trend</h3>
+            <canvas id="trend-chart" height="120"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PROFILE ──────────────────────────────────── -->
+      <div class="page" id="page-profile">
+        <div class="bg-white rounded-2xl border border-gray-100 p-6 max-w-2xl">
+          <h3 class="font-bold text-lg mb-6">Business Profile</h3>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold mb-1">Business Name</label>
+              <input type="text" id="biz-name" class="input-field">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1">Industry</label>
+              <select id="biz-industry" class="input-field">
+                <option>Food & Beverage</option><option>Retail</option><option>Health & Wellness</option>
+                <option>Home Services</option><option>Professional Services</option><option>Hospitality</option>
+                <option>Automotive</option><option>Education</option><option>Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1">Website</label>
+              <input type="url" id="biz-website" class="input-field" placeholder="https://...">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1">Phone</label>
+              <input type="tel" id="biz-phone" class="input-field" placeholder="+1 234 567 8900">
+            </div>
+          </div>
+          <div class="mt-4">
+            <h4 class="font-semibold text-sm mb-3 text-gray-700">Review Platform URLs</h4>
+            <div class="grid md:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold mb-1 text-gray-500">Google Business URL</label>
+                <input type="url" id="biz-google" class="input-field text-sm" placeholder="https://g.page/...">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1 text-gray-500">Trustpilot URL</label>
+                <input type="url" id="biz-trustpilot" class="input-field text-sm" placeholder="https://www.trustpilot.com/...">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1 text-gray-500">Facebook URL</label>
+                <input type="url" id="biz-facebook" class="input-field text-sm" placeholder="https://facebook.com/...">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1 text-gray-500">Yelp URL</label>
+                <input type="url" id="biz-yelp" class="input-field text-sm" placeholder="https://yelp.com/...">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-1 text-gray-500">TripAdvisor URL</label>
+                <input type="url" id="biz-tripadvisor" class="input-field text-sm" placeholder="https://tripadvisor.com/...">
+              </div>
+            </div>
+          </div>
+          <div id="profile-msg" class="hidden mt-4"></div>
+          <button onclick="saveProfile()" class="btn-primary mt-6">
+            <i class="fas fa-save mr-2"></i> Save Changes
+          </button>
+        </div>
+      </div>
+
+      <!-- ── BILLING ──────────────────────────────────── -->
+      <div class="page" id="page-billing">
+        <div class="mb-6">
+          <div class="bg-white rounded-2xl border border-gray-100 p-6">
+            <h3 class="font-bold text-lg mb-4">Current Plan</h3>
+            <div id="current-plan-info"></div>
+          </div>
+        </div>
+        <h3 class="font-bold text-lg mb-4">Upgrade Your Plan</h3>
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="bg-white rounded-2xl border border-gray-100 p-6">
+            <h4 class="font-bold mb-1">Starter</h4>
+            <div class="text-3xl font-extrabold mb-3">Free</div>
+            <ul class="space-y-2 text-sm mb-6">
+              <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> 50 invites/month</li>
+              <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> 1 platform</li>
+              <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Basic dashboard</li>
+            </ul>
+            <button onclick="selectPlan('starter')" class="w-full border-2 border-gray-200 py-2 rounded-xl font-semibold text-gray-500 hover:border-indigo-300 hover:text-indigo-600 transition">Current</button>
+          </div>
+          <div class="bg-white rounded-2xl border-2 border-indigo-400 p-6 relative">
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full">POPULAR</div>
+            <h4 class="font-bold mb-1">Growth</h4>
+            <div class="text-3xl font-extrabold text-indigo-600 mb-3">$49<span class="text-sm font-normal text-gray-400">/mo</span></div>
+            <ul class="space-y-2 text-sm mb-6">
+              <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> 500 invites/month</li>
+              <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> 5 platforms</li>
+              <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Full analytics</li>
+              <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Bulk invites</li>
+            </ul>
+            <button onclick="upgradePlan('growth')" class="btn-primary w-full">Upgrade to Growth</button>
+          </div>
+          <div class="bg-white rounded-2xl border border-gray-100 p-6">
+            <h4 class="font-bold mb-1">Enterprise</h4>
+            <div class="text-3xl font-extrabold mb-3">$199<span class="text-sm font-normal text-gray-400">/mo</span></div>
+            <ul class="space-y-2 text-sm mb-6">
+              <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Unlimited invites</li>
+              <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> All platforms</li>
+              <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> API access</li>
+              <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Dedicated manager</li>
+            </ul>
+            <button onclick="upgradePlan('enterprise')" class="w-full bg-gray-900 text-white py-2 rounded-xl font-semibold hover:bg-gray-800 transition">Upgrade to Enterprise</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Reply Modal -->
+  <div class="modal" id="reply-modal">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-lg mx-4">
+      <h3 class="font-bold text-lg mb-4">Reply to Review</h3>
+      <div id="modal-review-preview" class="bg-gray-50 rounded-xl p-4 mb-4 text-sm"></div>
+      <textarea id="modal-response" class="input-field" rows="4" placeholder="Write your response..."></textarea>
+      <input type="hidden" id="modal-review-id">
+      <div class="flex gap-3 mt-4">
+        <button onclick="submitResponse()" class="btn-primary flex-1">Submit Response</button>
+        <button onclick="closeModal()" class="flex-1 border border-gray-200 rounded-xl py-2 font-semibold text-gray-500 hover:bg-gray-50">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Modal -->
+  <div class="modal" id="payment-modal">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+      <h3 class="font-bold text-lg mb-2">Upgrade Plan</h3>
+      <p class="text-gray-500 text-sm mb-4" id="payment-plan-desc"></p>
+      <div class="bg-indigo-50 rounded-xl p-4 mb-4">
+        <div class="text-sm text-gray-600 mb-2">Demo Mode — Real Stripe integration available</div>
+        <div class="font-bold text-lg" id="payment-amount-display"></div>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-semibold mb-1">Card Number</label>
+        <input type="text" class="input-field" placeholder="4242 4242 4242 4242" value="4242 4242 4242 4242" readonly>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <div>
+          <label class="block text-sm font-semibold mb-1">Expiry</label>
+          <input type="text" class="input-field" placeholder="12/26" value="12/26" readonly>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">CVC</label>
+          <input type="text" class="input-field" placeholder="123" value="123" readonly>
+        </div>
+      </div>
+      <button onclick="processPayment()" class="btn-primary w-full mb-3" id="pay-btn">
+        <i class="fas fa-lock mr-2"></i> Complete Payment
+      </button>
+      <button onclick="document.getElementById('payment-modal').classList.remove('open')" class="w-full text-center text-gray-400 text-sm hover:text-gray-600">Cancel</button>
+      <p class="text-xs text-gray-400 text-center mt-2">Add STRIPE_SECRET_KEY env var to enable real payments</p>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    let token = localStorage.getItem('rg_token')
+    let bizData = null
+    let allReviews = []
+    let upgradeTarget = null
+    let paymentIntentId = null
+    let analyticsCharts = {}
+
+    async function api(path, method = 'GET', body = null) {
+      const opts = { method, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } }
+      if (body) opts.body = JSON.stringify(body)
+      const res = await fetch(path, opts)
+      return res.json()
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast')
+      t.textContent = msg
+      t.classList.add('show')
+      setTimeout(() => t.classList.remove('show'), 3500)
+    }
+
+    const pageTitles = { overview:'Overview', reviews:'Reviews', invites:'Send Invites', analytics:'Analytics', profile:'Business Profile', billing:'Billing & Plan' }
+
+    function showPage(name) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'))
+      document.getElementById('page-' + name).classList.add('active')
+      document.getElementById('page-title').textContent = pageTitles[name]
+      loadPageData(name)
+    }
+
+    async function init() {
+      if (!token) { window.location.href = '/login.html?type=business'; return }
+      const user = await api('/api/auth/me')
+      if (user.error) { window.location.href = '/login.html?type=business'; return }
+      bizData = user
+      document.getElementById('nav-biz-name').textContent = user.name
+      const planBadge = document.getElementById('nav-plan-badge')
+      planBadge.textContent = user.plan || 'starter'
+      planBadge.className = 'plan-badge plan-' + (user.plan || 'starter')
+      document.getElementById('page-date').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
+      loadOverview()
+    }
+
+    async function loadPageData(name) {
+      if (name === 'overview') loadOverview()
+      else if (name === 'reviews') loadReviews()
+      else if (name === 'invites') loadInvites()
+      else if (name === 'analytics') loadAnalytics()
+      else if (name === 'profile') loadProfile()
+      else if (name === 'billing') loadBilling()
+    }
+
+    async function loadOverview() {
+      try {
+        const data = await api('/api/business/dashboard')
+        bizData = data.business
+        const { stats, recentReviews } = data
+
+        document.getElementById('nav-invite-count').textContent = (stats.totalInvites || 0) + ' invites sent'
+        document.getElementById('stat-reviews').textContent = stats.totalReviews
+        document.getElementById('stat-rating').textContent = stats.avgRating || '0.0'
+        document.getElementById('stat-invites').textContent = stats.totalInvites
+        document.getElementById('stat-invites-used').textContent = bizData.monthly_invites_used || 0
+        document.getElementById('stat-conversion').textContent = (stats.conversionRate || 0) + '%'
+
+        const reviewsEl = document.getElementById('overview-reviews')
+        if (recentReviews.length) {
+          reviewsEl.innerHTML = recentReviews.map(r => renderReviewRow(r)).join('')
+        } else {
+          reviewsEl.innerHTML = '<div class="text-gray-400 text-center py-6">No reviews yet. Start sending invitations!</div>'
+        }
+      } catch (e) { console.error(e) }
+    }
+
+    function renderReviewRow(r) {
+      return `
+        <div class="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
+          <div class="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm flex-shrink-0">
+            ${r.customer_name.charAt(0).toUpperCase()}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-semibold text-sm">${r.customer_name}</span>
+              <span class="stars text-xs">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span>
+              <span class="badge badge-blue text-xs">${r.platform}</span>
+              ${r.verified ? '<span class="badge badge-green text-xs">✓ Verified</span>' : ''}
+            </div>
+            ${r.title ? `<div class="text-sm font-medium text-gray-700 mb-1">${r.title}</div>` : ''}
+            <div class="text-sm text-gray-500 truncate">${r.content}</div>
+            ${r.business_response ? '<div class="text-xs text-indigo-500 mt-1">✓ You responded</div>' : ''}
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-xs text-gray-400">${new Date(r.created_at).toLocaleDateString()}</span>
+            ${!r.business_response ? `<button onclick="openReplyModal(${r.id}, '${r.customer_name.replace(/'/g,"\\'")}', '${r.content.replace(/'/g,"\\'").slice(0,50)}...')" class="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-lg hover:bg-indigo-200">Reply</button>` : ''}
+          </div>
+        </div>
+      `
+    }
+
+    async function loadReviews() {
+      const el = document.getElementById('reviews-container')
+      try {
+        allReviews = await api('/api/business/reviews')
+        displayReviews(allReviews)
+      } catch (e) { el.innerHTML = '<div class="text-red-500 text-center py-4">Failed to load</div>' }
+    }
+
+    function displayReviews(reviews) {
+      const el = document.getElementById('reviews-container')
+      if (!reviews.length) { el.innerHTML = '<div class="text-gray-400 text-center py-8">No reviews yet</div>'; return }
+      el.innerHTML = reviews.map(r => `
+        <div class="border border-gray-100 rounded-xl p-4 mb-3">
+          <div class="flex items-start justify-between mb-2">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">${r.customer_name.charAt(0)}</div>
+              <div>
+                <div class="font-semibold text-sm">${r.customer_name}</div>
+                <div class="text-xs text-gray-400">${new Date(r.created_at).toLocaleDateString()}</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+              <div class="flex gap-1 mt-1 justify-end">
+                <span class="badge badge-blue">${r.platform}</span>
+                ${r.verified ? '<span class="badge badge-green">Verified</span>' : ''}
+              </div>
+            </div>
+          </div>
+          ${r.title ? `<div class="font-semibold mb-1">${r.title}</div>` : ''}
+          <div class="text-sm text-gray-600 mb-3">${r.content}</div>
+          ${r.business_response ? `
+            <div class="bg-indigo-50 rounded-lg p-3 border-l-4 border-indigo-400 text-sm">
+              <strong>Your Response:</strong> ${r.business_response}
+            </div>
+          ` : `<button onclick="openReplyModal(${r.id}, '${r.customer_name.replace(/'/g,"\\'")}', '${r.content.replace(/'/g,"\\'").slice(0,80)}')" class="text-sm text-indigo-600 font-semibold hover:underline">
+            <i class="fas fa-reply mr-1"></i>Reply to this review
+          </button>`}
+        </div>
+      `).join('')
+    }
+
+    function filterReviews() {
+      let filtered = allReviews
+      const platform = document.getElementById('review-filter-platform').value
+      const rating = document.getElementById('review-filter-rating').value
+      if (platform) filtered = filtered.filter(r => r.platform === platform)
+      if (rating) filtered = filtered.filter(r => r.rating == parseInt(rating))
+      displayReviews(filtered)
+    }
+
+    function openReplyModal(reviewId, name, preview) {
+      document.getElementById('modal-review-id').value = reviewId
+      document.getElementById('modal-review-preview').innerHTML = `<strong>${name}</strong>: "${preview}"`
+      document.getElementById('modal-response').value = ''
+      document.getElementById('reply-modal').classList.add('open')
+    }
+
+    function closeModal() {
+      document.getElementById('reply-modal').classList.remove('open')
+    }
+
+    async function submitResponse() {
+      const id = document.getElementById('modal-review-id').value
+      const response = document.getElementById('modal-response').value
+      if (!response.trim()) { showToast('Please enter a response'); return }
+      const res = await api('/api/business/reviews/' + id + '/respond', 'POST', { response })
+      if (res.success) {
+        closeModal()
+        showToast('Response submitted!')
+        loadReviews()
+        loadOverview()
+      }
+    }
+
+    async function loadInvites() {
+      try {
+        const invites = await api('/api/business/invitations')
+        const el = document.getElementById('recent-invites')
+        if (!invites.length) { el.innerHTML = '<div class="text-gray-400">No invitations sent yet</div>'; return }
+        el.innerHTML = invites.slice(0,5).map(inv => `
+          <div class="flex items-center justify-between bg-gray-50 rounded-lg p-2">
+            <div>
+              <div class="font-medium text-sm">${inv.customer_email}</div>
+              <div class="text-xs text-gray-400">${inv.platform} · ${inv.points_offered}pts</div>
+            </div>
+            <span class="badge ${inv.status==='completed'?'badge-green':inv.status==='pending'?'badge-yellow':'badge-red'}">${inv.status}</span>
+          </div>
+        `).join('')
+      } catch (e) {}
+    }
+
+    async function sendSingleInvite() {
+      const email = document.getElementById('inv-email').value
+      if (!email) { showMsg('inv-result', 'Email required', 'error'); return }
+      const res = await api('/api/business/invite', 'POST', {
+        customer_email: email,
+        customer_name: document.getElementById('inv-name').value,
+        platform: document.getElementById('inv-platform').value,
+        points_offered: parseInt(document.getElementById('inv-points').value),
+        message: document.getElementById('inv-message').value
+      })
+      if (res.error) { showMsg('inv-result', res.error, 'error'); return }
+      showMsg('inv-result', `✓ Invitation sent! Review link: ${window.location.origin}/review.html?token=${res.token}`, 'success')
+      document.getElementById('inv-email').value = ''
+      document.getElementById('inv-name').value = ''
+      loadInvites()
+    }
+
+    async function sendBulkInvite() {
+      const csv = document.getElementById('bulk-customers').value.trim()
+      if (!csv) { showMsg('bulk-result', 'Enter customer list', 'error'); return }
+      const customers = csv.split('\n').map(line => {
+        const parts = line.split(',')
+        return { email: parts[0]?.trim(), name: parts[1]?.trim() }
+      }).filter(c => c.email && c.email.includes('@'))
+
+      if (!customers.length) { showMsg('bulk-result', 'No valid emails found', 'error'); return }
+
+      const res = await api('/api/business/invite/bulk', 'POST', {
+        customers,
+        platform: document.getElementById('bulk-platform').value,
+        points_offered: parseInt(document.getElementById('bulk-points').value)
+      })
+      if (res.error) { showMsg('bulk-result', res.error, 'error'); return }
+      showMsg('bulk-result', `✓ Sent ${res.sent} invitations!`, 'success')
+      document.getElementById('bulk-customers').value = ''
+      loadInvites()
+    }
+
+    function showMsg(elId, text, type) {
+      const el = document.getElementById(elId)
+      el.className = type === 'error' ? 'error-msg mb-3' : 'success-msg mb-3'
+      el.textContent = text
+      el.classList.remove('hidden')
+      setTimeout(() => el.classList.add('hidden'), 5000)
+    }
+
+    async function loadAnalytics() {
+      try {
+        const data = await api('/api/business/analytics')
+
+        // Rating distribution
+        const ratings = [1,2,3,4,5].map(r => data.ratingDistribution?.find(d => d.rating == r)?.count || 0)
+        if (analyticsCharts.rating) analyticsCharts.rating.destroy()
+        analyticsCharts.rating = new Chart(document.getElementById('rating-chart'), {
+          type: 'bar',
+          data: {
+            labels: ['1★','2★','3★','4★','5★'],
+            datasets: [{ label: 'Reviews', data: ratings, backgroundColor: ['#fca5a5','#fdba74','#fde047','#86efac','#6ee7b7'], borderRadius: 6 }]
+          },
+          options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        })
+
+        // Platform distribution
+        const platforms = data.platformDistribution || []
+        if (analyticsCharts.platform) analyticsCharts.platform.destroy()
+        analyticsCharts.platform = new Chart(document.getElementById('platform-chart'), {
+          type: 'doughnut',
+          data: {
+            labels: platforms.map(p => p.platform),
+            datasets: [{ data: platforms.map(p => p.count), backgroundColor: ['#6366f1','#10b981','#3b82f6','#ef4444','#f59e0b'] }]
+          },
+          options: { responsive: true }
+        })
+
+        // Monthly trend
+        const trend = (data.monthlyTrend || []).reverse()
+        if (analyticsCharts.trend) analyticsCharts.trend.destroy()
+        analyticsCharts.trend = new Chart(document.getElementById('trend-chart'), {
+          type: 'line',
+          data: {
+            labels: trend.map(t => t.month),
+            datasets: [
+              { label: 'Reviews', data: trend.map(t => t.count), borderColor: '#6366f1', fill: true, backgroundColor: 'rgba(99,102,241,0.1)', tension: 0.4 },
+              { label: 'Avg Rating', data: trend.map(t => parseFloat(t.avg_rating || 0).toFixed(1)), borderColor: '#f59e0b', yAxisID: 'y2', tension: 0.4 }
+            ]
+          },
+          options: { responsive: true, scales: { y: { beginAtZero: true }, y2: { position: 'right', min: 0, max: 5 } } }
+        })
+      } catch (e) { console.error(e) }
+    }
+
+    async function loadProfile() {
+      if (!bizData) return
+      document.getElementById('biz-name').value = bizData.name || ''
+      document.getElementById('biz-industry').value = bizData.industry || 'Other'
+      document.getElementById('biz-website').value = bizData.website || ''
+      document.getElementById('biz-phone').value = bizData.phone || ''
+      document.getElementById('biz-google').value = bizData.google_url || ''
+      document.getElementById('biz-trustpilot').value = bizData.trustpilot_url || ''
+      document.getElementById('biz-facebook').value = bizData.facebook_url || ''
+      document.getElementById('biz-yelp').value = bizData.yelp_url || ''
+      document.getElementById('biz-tripadvisor').value = bizData.tripadvisor_url || ''
+    }
+
+    async function saveProfile() {
+      const res = await api('/api/business/profile', 'PUT', {
+        name: document.getElementById('biz-name').value,
+        industry: document.getElementById('biz-industry').value,
+        website: document.getElementById('biz-website').value,
+        phone: document.getElementById('biz-phone').value,
+        google_url: document.getElementById('biz-google').value,
+        trustpilot_url: document.getElementById('biz-trustpilot').value,
+        facebook_url: document.getElementById('biz-facebook').value,
+        yelp_url: document.getElementById('biz-yelp').value,
+        tripadvisor_url: document.getElementById('biz-tripadvisor').value
+      })
+      if (res.error) { showToast('Error: ' + res.error); return }
+      bizData = res
+      document.getElementById('nav-biz-name').textContent = res.name
+      showToast('Profile saved!')
+    }
+
+    async function loadBilling() {
+      if (!bizData) return
+      const planNames = { starter: 'Starter (Free)', growth: 'Growth ($49/mo)', enterprise: 'Enterprise ($199/mo)' }
+      const planLimits = { starter: 50, growth: 500, enterprise: 'Unlimited' }
+      document.getElementById('current-plan-info').innerHTML = `
+        <div class="flex items-center gap-4">
+          <div class="text-4xl">${bizData.plan === 'enterprise' ? '👑' : bizData.plan === 'growth' ? '🚀' : '🌱'}</div>
+          <div>
+            <div class="font-bold text-xl">${planNames[bizData.plan] || 'Starter'}</div>
+            <div class="text-gray-500">
+              ${bizData.monthly_invites_used || 0} / ${planLimits[bizData.plan]} invites used this month
+            </div>
+          </div>
+        </div>
+      `
+    }
+
+    async function upgradePlan(plan) {
+      upgradeTarget = plan
+      const prices = { growth: '$49/month', enterprise: '$199/month' }
+      document.getElementById('payment-plan-desc').textContent = `Upgrade to ${plan.charAt(0).toUpperCase()+plan.slice(1)} plan`
+      document.getElementById('payment-amount-display').textContent = prices[plan]
+      document.getElementById('payment-modal').classList.add('open')
+
+      // Create payment intent
+      const res = await api('/api/payments/create-intent', 'POST', { plan })
+      if (res.error) { showToast('Error: ' + res.error); return }
+      paymentIntentId = res.payment_intent_id
+    }
+
+    async function processPayment() {
+      const btn = document.getElementById('pay-btn')
+      btn.disabled = true
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...'
+      try {
+        const res = await api('/api/payments/confirm', 'POST', { payment_intent_id: paymentIntentId, plan: upgradeTarget })
+        if (res.error) { showToast('Payment error: ' + res.error); btn.disabled = false; btn.innerHTML = '<i class="fas fa-lock mr-2"></i> Complete Payment'; return }
+        document.getElementById('payment-modal').classList.remove('open')
+        showToast('🎉 Plan upgraded to ' + upgradeTarget + '!')
+        bizData.plan = upgradeTarget
+        const badge = document.getElementById('nav-plan-badge')
+        badge.textContent = upgradeTarget
+        badge.className = 'plan-badge plan-' + upgradeTarget
+        loadBilling()
+      } catch (e) {
+        showToast('Error: ' + e.message)
+      }
+      btn.disabled = false
+      btn.innerHTML = '<i class="fas fa-lock mr-2"></i> Complete Payment'
+    }
+
+    function logout() {
+      fetch('/api/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } })
+      localStorage.clear()
+      window.location.href = '/login.html'
+    }
+
+    document.getElementById('page-date').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
+    init()
+  </script>
+  <style>
+    .error-msg { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; }
+    .success-msg { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; }
+  </style>
+</body>
+</html>

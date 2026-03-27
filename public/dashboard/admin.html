@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — ReviewGate</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .sidebar { width: 260px; min-height: 100vh; background: #0f0f1a; }
+    .sidebar-link { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-radius: 10px; cursor: pointer; transition: all 0.2s; color: #94a3b8; font-weight: 500; }
+    .sidebar-link:hover, .sidebar-link.active { background: rgba(99,102,241,0.15); color: white; }
+    .sidebar-link.active { border-left: 3px solid #6366f1; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .stat-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #f3f4f6; }
+    .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 8px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 0.85rem; }
+    .btn-danger { background: #ef4444; color: white; padding: 6px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 0.8rem; }
+    .btn-success { background: #10b981; color: white; padding: 6px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 0.8rem; }
+    .btn-warning { background: #f59e0b; color: white; padding: 6px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 0.8rem; }
+    .badge { padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+    .badge-green { background: #d1fae5; color: #065f46; }
+    .badge-yellow { background: #fef3c7; color: #92400e; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-purple { background: #ede9fe; color: #5b21b6; }
+    .badge-gray { background: #f3f4f6; color: #374151; }
+    .input-field { padding: 8px 12px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 0.9rem; outline: none; }
+    .input-field:focus { border-color: #6366f1; }
+    .stars { color: #f59e0b; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #1e1b4b; color: white; padding: 14px 20px; border-radius: 12px; font-size: 0.9rem; z-index: 9999; transform: translateY(100px); transition: transform 0.3s; }
+    .toast.show { transform: translateY(0); }
+    .data-table { width: 100%; }
+    .data-table th { text-align: left; padding: 8px 12px; font-size: 0.75rem; text-transform: uppercase; color: #6b7280; font-weight: 600; border-bottom: 1px solid #f3f4f6; }
+    .data-table td { padding: 12px 12px; border-bottom: 1px solid #f9fafb; font-size: 0.85rem; }
+    .data-table tr:hover td { background: #f9fafb; }
+  </style>
+</head>
+<body class="bg-gray-50 flex">
+
+  <!-- Sidebar -->
+  <div class="sidebar flex flex-col">
+    <div class="p-6 border-b border-white/5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center text-white font-bold">R</div>
+        <div>
+          <span class="text-white text-lg font-bold">ReviewGate</span>
+          <div class="text-xs text-red-400 font-bold">ADMIN PANEL</div>
+        </div>
+      </div>
+    </div>
+    <div class="p-4 border-b border-white/5">
+      <div class="text-white font-semibold text-sm" id="admin-name">Admin</div>
+      <div class="text-slate-400 text-xs">Super Administrator</div>
+    </div>
+    <nav class="flex-1 p-4 space-y-1">
+      <div class="sidebar-link active" onclick="showPage('overview')"><i class="fas fa-tachometer-alt w-5"></i> Overview</div>
+      <div class="sidebar-link" onclick="showPage('businesses')"><i class="fas fa-building w-5"></i> Businesses</div>
+      <div class="sidebar-link" onclick="showPage('customers')"><i class="fas fa-users w-5"></i> Customers</div>
+      <div class="sidebar-link" onclick="showPage('reviews')"><i class="fas fa-star w-5"></i> Reviews</div>
+      <div class="sidebar-link" onclick="showPage('redemptions')">
+        <i class="fas fa-gift w-5"></i> Redemptions
+        <span class="ml-auto text-xs bg-red-500 text-white px-2 py-0.5 rounded-full" id="pending-badge" style="display:none">0</span>
+      </div>
+      <div class="sidebar-link" onclick="showPage('rewards')"><i class="fas fa-trophy w-5"></i> Reward Tiers</div>
+    </nav>
+    <div class="p-4 border-t border-white/5">
+      <button onclick="logout()" class="sidebar-link w-full text-red-400 hover:text-red-300 hover:bg-red-900/20">
+        <i class="fas fa-sign-out-alt w-5"></i> Sign Out
+      </button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="flex-1 overflow-auto">
+    <div class="bg-white border-b px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div>
+        <h1 class="text-xl font-bold text-gray-900" id="page-title">Admin Overview</h1>
+        <p class="text-gray-400 text-sm" id="page-date"></p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs bg-red-100 text-red-600 px-3 py-1 rounded-full font-semibold">🔒 Admin Access</span>
+      </div>
+    </div>
+
+    <div class="p-8">
+
+      <!-- ── OVERVIEW ─────────────────────────────────── -->
+      <div class="page active" id="page-overview">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-gray-500 text-sm">Businesses</span>
+              <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center"><i class="fas fa-building text-indigo-500 text-sm"></i></div>
+            </div>
+            <div class="text-3xl font-extrabold" id="s-businesses">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-gray-500 text-sm">Customers</span>
+              <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"><i class="fas fa-users text-blue-500 text-sm"></i></div>
+            </div>
+            <div class="text-3xl font-extrabold" id="s-customers">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-gray-500 text-sm">Reviews</span>
+              <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center"><i class="fas fa-star text-yellow-500 text-sm"></i></div>
+            </div>
+            <div class="text-3xl font-extrabold" id="s-reviews">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-gray-500 text-sm">Redemptions</span>
+              <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center"><i class="fas fa-gift text-green-500 text-sm"></i></div>
+            </div>
+            <div class="text-3xl font-extrabold" id="s-redemptions">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-gray-500 text-sm">Revenue</span>
+              <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center"><i class="fas fa-dollar-sign text-purple-500 text-sm"></i></div>
+            </div>
+            <div class="text-3xl font-extrabold text-green-600" id="s-revenue">$0</div>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-gray-500 text-sm">Pending Payouts</span>
+              <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center"><i class="fas fa-clock text-orange-500 text-sm"></i></div>
+            </div>
+            <div class="text-3xl font-extrabold text-orange-500" id="s-pending">0</div>
+            <button onclick="showPage('redemptions')" class="text-xs text-orange-500 mt-1 hover:underline">Process now →</button>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="bg-white rounded-2xl border border-gray-100 p-6">
+            <h3 class="font-bold mb-4">Recent Businesses</h3>
+            <div id="overview-businesses" class="space-y-2 text-sm"></div>
+          </div>
+          <div class="bg-white rounded-2xl border border-gray-100 p-6">
+            <h3 class="font-bold mb-4">Recent Customers</h3>
+            <div id="overview-customers" class="space-y-2 text-sm"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BUSINESSES ────────────────────────────────── -->
+      <div class="page" id="page-businesses">
+        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div class="p-6 border-b flex items-center justify-between">
+            <h3 class="font-bold text-lg">All Businesses</h3>
+            <input type="text" class="input-field" placeholder="Search..." oninput="filterTable('biz-table-body', this.value)" style="width:200px">
+          </div>
+          <div class="overflow-x-auto">
+            <table class="data-table">
+              <thead><tr>
+                <th>Business</th><th>Email</th><th>Plan</th><th>Reviews</th><th>Invites</th><th>Status</th><th>Joined</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="biz-table-body">
+                <tr><td colspan="8" class="text-center text-gray-400 py-8">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CUSTOMERS ─────────────────────────────────── -->
+      <div class="page" id="page-customers">
+        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div class="p-6 border-b flex items-center justify-between">
+            <h3 class="font-bold text-lg">All Customers</h3>
+            <input type="text" class="input-field" placeholder="Search..." oninput="filterTable('cust-table-body', this.value)" style="width:200px">
+          </div>
+          <div class="overflow-x-auto">
+            <table class="data-table">
+              <thead><tr>
+                <th>Customer</th><th>Email</th><th>Points</th><th>Earned</th><th>Reviews</th><th>Status</th><th>Joined</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="cust-table-body">
+                <tr><td colspan="8" class="text-center text-gray-400 py-8">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── REVIEWS ────────────────────────────────────── -->
+      <div class="page" id="page-reviews">
+        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div class="p-6 border-b">
+            <h3 class="font-bold text-lg">All Reviews</h3>
+            <p class="text-sm text-gray-500 mt-1">Monitor and moderate platform reviews</p>
+          </div>
+          <div id="admin-reviews-list" class="p-6">
+            <div class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin text-2xl"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── REDEMPTIONS ────────────────────────────────── -->
+      <div class="page" id="page-redemptions">
+        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div class="p-6 border-b flex items-center justify-between">
+            <div>
+              <h3 class="font-bold text-lg">Payout Requests</h3>
+              <p class="text-sm text-gray-500 mt-1">Process customer reward redemptions</p>
+            </div>
+            <div class="flex gap-2">
+              <select id="redeem-filter" class="input-field" onchange="loadRedemptions()">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="data-table">
+              <thead><tr>
+                <th>Customer</th><th>Email</th><th>Reward</th><th>Value</th><th>PayPal</th><th>Status</th><th>Requested</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="redeem-table-body">
+                <tr><td colspan="8" class="text-center text-gray-400 py-8">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── REWARD TIERS ───────────────────────────────── -->
+      <div class="page" id="page-rewards">
+        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-6">
+          <div class="p-6 border-b">
+            <h3 class="font-bold text-lg">Current Reward Tiers</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="data-table">
+              <thead><tr><th>Name</th><th>Points Required</th><th>Value</th><th>Type</th><th>Status</th></tr></thead>
+              <tbody id="rewards-table-body">
+                <tr><td colspan="5" class="text-center text-gray-400 py-8">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl border border-gray-100 p-6 max-w-md">
+          <h3 class="font-bold text-lg mb-4">Add New Reward Tier</h3>
+          <div class="mb-3">
+            <label class="block text-sm font-semibold mb-1">Name</label>
+            <input type="text" id="new-tier-name" class="input-field w-full" placeholder="e.g. Movie Night">
+          </div>
+          <div class="mb-3">
+            <label class="block text-sm font-semibold mb-1">Description</label>
+            <input type="text" id="new-tier-desc" class="input-field w-full" placeholder="Get $X via PayPal">
+          </div>
+          <div class="mb-3">
+            <label class="block text-sm font-semibold mb-1">Points Required</label>
+            <input type="number" id="new-tier-points" class="input-field w-full" placeholder="500">
+          </div>
+          <div class="mb-3">
+            <label class="block text-sm font-semibold mb-1">Reward Value ($)</label>
+            <input type="number" step="0.01" id="new-tier-value" class="input-field w-full" placeholder="5.00">
+          </div>
+          <button onclick="addRewardTier()" class="btn-primary w-full">Add Reward Tier</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const token = localStorage.getItem('rg_token')
+    let allBiz = [], allCust = [], allRedemptions = []
+
+    async function api(path, method = 'GET', body = null) {
+      const opts = { method, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } }
+      if (body) opts.body = JSON.stringify(body)
+      const res = await fetch(path, opts)
+      return res.json()
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast')
+      t.textContent = msg
+      t.classList.add('show')
+      setTimeout(() => t.classList.remove('show'), 3500)
+    }
+
+    const pageTitles = { overview:'Admin Overview', businesses:'Businesses', customers:'Customers', reviews:'Reviews', redemptions:'Payout Requests', rewards:'Reward Tiers' }
+
+    function showPage(name) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'))
+      document.getElementById('page-' + name).classList.add('active')
+      document.getElementById('page-title').textContent = pageTitles[name]
+      loadPageData(name)
+    }
+
+    async function init() {
+      if (!token) { window.location.href = '/login.html?type=admin'; return }
+      const user = await api('/api/auth/me')
+      if (user.error || user.user_type !== 'admin') { window.location.href = '/login.html?type=admin'; return }
+      document.getElementById('admin-name').textContent = user.name
+      document.getElementById('page-date').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
+      loadOverview()
+    }
+
+    async function loadPageData(name) {
+      if (name === 'overview') loadOverview()
+      else if (name === 'businesses') loadBusinesses()
+      else if (name === 'customers') loadCustomers()
+      else if (name === 'reviews') loadReviews()
+      else if (name === 'redemptions') loadRedemptions()
+      else if (name === 'rewards') loadRewards()
+    }
+
+    async function loadOverview() {
+      const [stats, businesses, customers] = await Promise.all([
+        api('/api/admin/overview'),
+        api('/api/admin/businesses'),
+        api('/api/admin/customers')
+      ])
+
+      document.getElementById('s-businesses').textContent = stats.businesses || 0
+      document.getElementById('s-customers').textContent = stats.customers || 0
+      document.getElementById('s-reviews').textContent = stats.reviews || 0
+      document.getElementById('s-redemptions').textContent = stats.redemptions || 0
+      document.getElementById('s-revenue').textContent = '$' + (stats.revenue || 0).toFixed(2)
+      document.getElementById('s-pending').textContent = stats.pendingRedemptions || 0
+
+      if (stats.pendingRedemptions > 0) {
+        const badge = document.getElementById('pending-badge')
+        badge.textContent = stats.pendingRedemptions
+        badge.style.display = 'inline'
+      }
+
+      document.getElementById('overview-businesses').innerHTML = (businesses.slice(0,5) || []).map(b => `
+        <div class="flex items-center justify-between bg-gray-50 rounded-lg p-2">
+          <div>
+            <div class="font-medium">${b.name}</div>
+            <div class="text-xs text-gray-400">${b.email}</div>
+          </div>
+          <span class="badge ${b.plan==='enterprise'?'badge-yellow':b.plan==='growth'?'badge-purple':'badge-gray'}">${b.plan}</span>
+        </div>
+      `).join('')
+
+      document.getElementById('overview-customers').innerHTML = (customers.slice(0,5) || []).map(c => `
+        <div class="flex items-center justify-between bg-gray-50 rounded-lg p-2">
+          <div>
+            <div class="font-medium">${c.name}</div>
+            <div class="text-xs text-gray-400">${c.email}</div>
+          </div>
+          <div class="text-green-600 font-bold text-sm">${c.points} pts</div>
+        </div>
+      `).join('')
+    }
+
+    async function loadBusinesses() {
+      allBiz = await api('/api/admin/businesses')
+      renderBusinesses(allBiz)
+    }
+
+    function renderBusinesses(list) {
+      document.getElementById('biz-table-body').innerHTML = list.map(b => `
+        <tr>
+          <td><div class="font-medium">${b.name}</div><div class="text-xs text-gray-400">${b.industry || 'N/A'}</div></td>
+          <td>${b.email}</td>
+          <td><span class="badge ${b.plan==='enterprise'?'badge-yellow':b.plan==='growth'?'badge-purple':'badge-gray'}">${b.plan}</span></td>
+          <td>${b.review_count || 0}</td>
+          <td>${b.invite_count || 0}</td>
+          <td><span class="badge ${b.is_active?'badge-green':'badge-red'}">${b.is_active?'Active':'Suspended'}</span></td>
+          <td class="text-gray-400">${new Date(b.created_at).toLocaleDateString()}</td>
+          <td>
+            <button onclick="toggleBizStatus(${b.id}, ${b.is_active?0:1})" class="${b.is_active?'btn-warning':'btn-success'}">
+              ${b.is_active?'Suspend':'Activate'}
+            </button>
+          </td>
+        </tr>
+      `).join('')
+    }
+
+    async function toggleBizStatus(id, status) {
+      await api('/api/admin/businesses/' + id + '/status', 'PATCH', { is_active: status })
+      showToast(status ? 'Business activated' : 'Business suspended')
+      loadBusinesses()
+    }
+
+    async function loadCustomers() {
+      allCust = await api('/api/admin/customers')
+      renderCustomers(allCust)
+    }
+
+    function renderCustomers(list) {
+      document.getElementById('cust-table-body').innerHTML = list.map(c => `
+        <tr>
+          <td><div class="font-medium">${c.name}</div></td>
+          <td>${c.email}</td>
+          <td class="font-bold text-indigo-600">${c.points}</td>
+          <td>${c.total_earned}</td>
+          <td>${c.reviews_written}</td>
+          <td><span class="badge ${c.is_active?'badge-green':'badge-red'}">${c.is_active?'Active':'Suspended'}</span></td>
+          <td class="text-gray-400">${new Date(c.created_at).toLocaleDateString()}</td>
+          <td>
+            <button onclick="toggleCustStatus(${c.id}, ${c.is_active?0:1})" class="${c.is_active?'btn-warning':'btn-success'}">
+              ${c.is_active?'Suspend':'Activate'}
+            </button>
+          </td>
+        </tr>
+      `).join('')
+    }
+
+    async function toggleCustStatus(id, status) {
+      await api('/api/admin/customers/' + id + '/status', 'PATCH', { is_active: status })
+      showToast(status ? 'Customer activated' : 'Customer suspended')
+      loadCustomers()
+    }
+
+    async function loadReviews() {
+      const reviews = await api('/api/admin/reviews')
+      const el = document.getElementById('admin-reviews-list')
+      if (!reviews.length) { el.innerHTML = '<div class="text-gray-400 text-center py-8">No reviews yet</div>'; return }
+      el.innerHTML = reviews.map(r => `
+        <div class="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
+          <div class="flex-1">
+            <div class="flex items-center gap-2 flex-wrap mb-1">
+              <span class="font-semibold text-sm">${r.customer_name}</span>
+              <span class="text-yellow-500 text-xs">${'★'.repeat(r.rating)}</span>
+              <span class="badge badge-blue text-xs">${r.platform}</span>
+              <span class="text-gray-400 text-xs">→ ${r.business_name}</span>
+              ${r.verified ? '<span class="badge badge-green text-xs">Verified</span>' : ''}
+            </div>
+            ${r.title ? `<div class="text-sm font-medium">${r.title}</div>` : ''}
+            <div class="text-sm text-gray-500">${r.content?.slice(0,100)}${r.content?.length>100?'...':''}</div>
+          </div>
+          <div class="text-xs text-gray-400 flex-shrink-0">${new Date(r.created_at).toLocaleDateString()}</div>
+        </div>
+      `).join('')
+    }
+
+    async function loadRedemptions() {
+      const filter = document.getElementById('redeem-filter')?.value || ''
+      allRedemptions = await api('/api/admin/redemptions')
+      const filtered = filter ? allRedemptions.filter(r => r.status === filter) : allRedemptions
+      
+      document.getElementById('redeem-table-body').innerHTML = filtered.length ? filtered.map(r => `
+        <tr>
+          <td><div class="font-medium">${r.customer_name}</div></td>
+          <td class="text-gray-500">${r.customer_email}</td>
+          <td>${r.tier_name}</td>
+          <td class="font-bold text-green-600">$${r.reward_value}</td>
+          <td class="text-sm text-gray-500">${r.payout_email || 'N/A'}</td>
+          <td><span class="badge ${r.status==='completed'?'badge-green':r.status==='pending'?'badge-yellow':'badge-red'}">${r.status}</span></td>
+          <td class="text-gray-400">${new Date(r.created_at).toLocaleDateString()}</td>
+          <td>
+            ${r.status === 'pending' ? `
+              <div class="flex gap-1">
+                <button onclick="processRedeem(${r.id}, 'completed')" class="btn-success">Pay</button>
+                <button onclick="processRedeem(${r.id}, 'rejected')" class="btn-danger">Reject</button>
+              </div>
+            ` : `<span class="text-gray-400 text-xs">${r.payout_reference || 'Processed'}</span>`}
+          </td>
+        </tr>
+      `).join('') : '<tr><td colspan="8" class="text-center text-gray-400 py-8">No redemptions found</td></tr>'
+    }
+
+    async function processRedeem(id, status) {
+      if (status === 'completed') {
+        // Try PayPal payout
+        const res = await api('/api/payments/paypal/payout', 'POST', { redemption_id: id })
+        if (res.error) { showToast('Error: ' + res.error); return }
+        showToast(res.demo ? '✓ Demo payout processed' : '✓ PayPal payout sent!')
+      } else {
+        await api('/api/admin/redemptions/' + id + '/process', 'POST', { status, payout_reference: 'rejected_' + Date.now() })
+        showToast('Redemption rejected')
+      }
+      loadRedemptions()
+      loadOverview()
+    }
+
+    async function loadRewards() {
+      const tiers = await api('/api/admin/reward-tiers')
+      document.getElementById('rewards-table-body').innerHTML = tiers.map(t => `
+        <tr>
+          <td><div class="font-medium">${t.name}</div><div class="text-xs text-gray-400">${t.description || ''}</div></td>
+          <td class="font-bold text-indigo-600">${t.points_required.toLocaleString()}</td>
+          <td class="font-bold text-green-600">$${t.reward_value}</td>
+          <td><span class="badge badge-blue">${t.reward_type}</span></td>
+          <td><span class="badge ${t.is_active?'badge-green':'badge-red'}">${t.is_active?'Active':'Inactive'}</span></td>
+        </tr>
+      `).join('')
+    }
+
+    async function addRewardTier() {
+      const name = document.getElementById('new-tier-name').value
+      const desc = document.getElementById('new-tier-desc').value
+      const points = document.getElementById('new-tier-points').value
+      const value = document.getElementById('new-tier-value').value
+
+      if (!name || !points || !value) { showToast('Please fill all fields'); return }
+
+      const res = await api('/api/admin/reward-tiers', 'POST', {
+        name, description: desc, points_required: parseInt(points), reward_type: 'paypal', reward_value: parseFloat(value)
+      })
+      if (res.error) { showToast('Error: ' + res.error); return }
+      showToast('Reward tier added!')
+      document.getElementById('new-tier-name').value = ''
+      document.getElementById('new-tier-desc').value = ''
+      document.getElementById('new-tier-points').value = ''
+      document.getElementById('new-tier-value').value = ''
+      loadRewards()
+    }
+
+    function filterTable(tbodyId, query) {
+      const tbody = document.getElementById(tbodyId)
+      const rows = tbody.querySelectorAll('tr')
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase()
+        row.style.display = text.includes(query.toLowerCase()) ? '' : 'none'
+      })
+    }
+
+    function logout() {
+      fetch('/api/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } })
+      localStorage.clear()
+      window.location.href = '/login.html'
+    }
+
+    document.getElementById('page-date').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
+    init()
+  </script>
+</body>
+</html>

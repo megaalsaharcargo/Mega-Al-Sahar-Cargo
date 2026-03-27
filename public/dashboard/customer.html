@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Dashboard — ReviewGate</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .sidebar { width: 260px; min-height: 100vh; background: #1e1b4b; }
+    .sidebar-link { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-radius: 10px; cursor: pointer; transition: all 0.2s; color: #a5b4fc; font-weight: 500; }
+    .sidebar-link:hover, .sidebar-link.active { background: rgba(99,102,241,0.2); color: white; }
+    .sidebar-link.active { border-left: 3px solid #6366f1; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .stat-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #f3f4f6; }
+    .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.2s; font-size: 0.9rem; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-outline { background: transparent; color: #6366f1; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; border: 2px solid #6366f1; transition: all 0.2s; font-size: 0.9rem; }
+    .btn-outline:hover { background: #6366f1; color: white; }
+    .badge { padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .badge-green { background: #d1fae5; color: #065f46; }
+    .badge-yellow { background: #fef3c7; color: #92400e; }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .input-field { width: 100%; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 0.9rem; outline: none; }
+    .input-field:focus { border-color: #6366f1; }
+    .reward-card { background: white; border-radius: 16px; border: 2px solid #f3f4f6; padding: 20px; text-align: center; transition: all 0.2s; cursor: pointer; }
+    .reward-card:hover { border-color: #6366f1; transform: translateY(-2px); }
+    .reward-card.selected { border-color: #6366f1; background: #eef2ff; }
+    .progress-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; transition: width 0.5s; }
+    .stars { color: #f59e0b; }
+    .tx-earn { color: #059669; }
+    .tx-redeem { color: #dc2626; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #1e1b4b; color: white; padding: 14px 20px; border-radius: 12px; font-size: 0.9rem; z-index: 9999; transform: translateY(100px); transition: transform 0.3s; }
+    .toast.show { transform: translateY(0); }
+  </style>
+</head>
+<body class="bg-gray-50 flex">
+
+  <!-- Sidebar -->
+  <div class="sidebar flex flex-col">
+    <div class="p-6 border-b border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center text-white font-bold text-lg">R</div>
+        <span class="text-white text-lg font-bold">ReviewGate</span>
+      </div>
+    </div>
+    <!-- User Info -->
+    <div class="p-4 border-b border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" id="avatar" style="background:#6366f1">A</div>
+        <div>
+          <div class="text-white font-semibold text-sm" id="nav-name">Loading...</div>
+          <div class="text-indigo-300 text-xs">Customer Account</div>
+        </div>
+      </div>
+      <div class="mt-3 bg-white/10 rounded-xl p-2 text-center">
+        <div class="text-white font-bold text-xl" id="nav-points">0</div>
+        <div class="text-indigo-300 text-xs">Points Balance</div>
+      </div>
+    </div>
+    <!-- Nav Links -->
+    <nav class="flex-1 p-4 space-y-1">
+      <div class="sidebar-link active" onclick="showPage('overview')">
+        <i class="fas fa-home w-5"></i> Overview
+      </div>
+      <div class="sidebar-link" onclick="showPage('invitations')">
+        <i class="fas fa-envelope w-5"></i> My Invitations
+        <span class="ml-auto text-xs bg-yellow-500 text-white px-2 py-0.5 rounded-full" id="invite-badge" style="display:none">0</span>
+      </div>
+      <div class="sidebar-link" onclick="showPage('reviews')">
+        <i class="fas fa-star w-5"></i> My Reviews
+      </div>
+      <div class="sidebar-link" onclick="showPage('points')">
+        <i class="fas fa-coins w-5"></i> Points History
+      </div>
+      <div class="sidebar-link" onclick="showPage('redeem')">
+        <i class="fas fa-gift w-5"></i> Redeem Rewards
+      </div>
+      <div class="sidebar-link" onclick="showPage('profile')">
+        <i class="fas fa-user-cog w-5"></i> Profile Settings
+      </div>
+    </nav>
+    <div class="p-4 border-t border-white/10">
+      <button onclick="logout()" class="sidebar-link w-full text-red-400 hover:text-red-300 hover:bg-red-900/20">
+        <i class="fas fa-sign-out-alt w-5"></i> Sign Out
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="flex-1 overflow-auto">
+    <!-- Top Bar -->
+    <div class="bg-white border-b px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div>
+        <h1 class="text-xl font-bold text-gray-900" id="page-title">Overview</h1>
+        <p class="text-gray-400 text-sm" id="page-date"></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="/review.html" class="btn-primary text-sm">
+          <i class="fas fa-pen mr-1"></i> Write Review
+        </a>
+      </div>
+    </div>
+
+    <div class="p-8">
+
+      <!-- ── OVERVIEW PAGE ────────────────────────────── -->
+      <div class="page active" id="page-overview">
+        <!-- Welcome Banner -->
+        <div class="gradient-bg text-white rounded-2xl p-6 mb-6 flex items-center justify-between">
+          <div>
+            <h2 class="text-2xl font-bold mb-1">Welcome back, <span id="welcome-name">...</span>! 👋</h2>
+            <p class="text-white/80">You have <strong id="welcome-points">0</strong> points — redeem them for cash!</p>
+          </div>
+          <button onclick="showPage('redeem')" class="bg-white text-indigo-700 font-bold px-6 py-3 rounded-xl hover:bg-gray-100 transition">
+            Redeem Now →
+          </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div class="stat-card text-center">
+            <div class="text-3xl font-extrabold text-indigo-600" id="stat-points">0</div>
+            <div class="text-gray-500 text-sm mt-1">Points Balance</div>
+          </div>
+          <div class="stat-card text-center">
+            <div class="text-3xl font-extrabold text-green-500" id="stat-earned">0</div>
+            <div class="text-gray-500 text-sm mt-1">Total Earned</div>
+          </div>
+          <div class="stat-card text-center">
+            <div class="text-3xl font-extrabold text-purple-500" id="stat-reviews">0</div>
+            <div class="text-gray-500 text-sm mt-1">Reviews Written</div>
+          </div>
+          <div class="stat-card text-center">
+            <div class="text-3xl font-extrabold text-yellow-500" id="stat-redeemed">$0</div>
+            <div class="text-gray-500 text-sm mt-1">Cash Redeemed</div>
+          </div>
+        </div>
+
+        <!-- Points Progress -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-100 mb-6">
+          <h3 class="font-bold text-gray-900 mb-4">Progress to Next Reward</h3>
+          <div id="progress-section"></div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="bg-white rounded-2xl p-6 border border-gray-100">
+            <h3 class="font-bold text-gray-900 mb-4">Recent Transactions</h3>
+            <div id="recent-transactions" class="space-y-3">
+              <div class="text-gray-400 text-sm text-center py-4">Loading...</div>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl p-6 border border-gray-100">
+            <h3 class="font-bold text-gray-900 mb-4">Pending Invitations</h3>
+            <div id="pending-invites-list" class="space-y-3">
+              <div class="text-gray-400 text-sm text-center py-4">Loading...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── INVITATIONS PAGE ─────────────────────────── -->
+      <div class="page" id="page-invitations">
+        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div class="p-6 border-b flex items-center justify-between">
+            <h3 class="font-bold text-lg">My Review Invitations</h3>
+            <span class="text-sm text-gray-500">Complete invitations to earn points</span>
+          </div>
+          <div id="invitations-table" class="p-6">
+            <div class="text-gray-400 text-center py-8"><i class="fas fa-spinner fa-spin text-2xl"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── REVIEWS PAGE ─────────────────────────────── -->
+      <div class="page" id="page-reviews">
+        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div class="p-6 border-b">
+            <h3 class="font-bold text-lg">My Reviews</h3>
+            <p class="text-sm text-gray-500 mt-1">All reviews you've written through ReviewGate</p>
+          </div>
+          <div id="reviews-list" class="p-6">
+            <div class="text-gray-400 text-center py-8"><i class="fas fa-spinner fa-spin text-2xl"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── POINTS PAGE ──────────────────────────────── -->
+      <div class="page" id="page-points">
+        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div class="p-6 border-b">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-bold text-lg">Points History</h3>
+                <p class="text-sm text-gray-500 mt-1">All your point transactions</p>
+              </div>
+              <div class="text-right">
+                <div class="text-2xl font-extrabold text-indigo-600" id="points-balance-display">0</div>
+                <div class="text-sm text-gray-500">Current Balance</div>
+              </div>
+            </div>
+          </div>
+          <div id="points-table" class="p-6">
+            <div class="text-gray-400 text-center py-8"><i class="fas fa-spinner fa-spin text-2xl"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── REDEEM PAGE ──────────────────────────────── -->
+      <div class="page" id="page-redeem">
+        <div class="mb-6">
+          <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-2xl p-4 flex items-center gap-4">
+            <div class="text-4xl">💰</div>
+            <div>
+              <div class="font-bold text-gray-900">Your Balance: <span id="redeem-balance" class="text-indigo-600">0 pts</span></div>
+              <div class="text-sm text-gray-500">Select a reward tier below to redeem</div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="font-bold text-lg mb-4">Choose Your Reward</h3>
+        <div id="reward-grid" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6"></div>
+
+        <div id="redeem-form" class="hidden bg-white rounded-2xl border border-gray-100 p-6">
+          <h4 class="font-bold mb-4">Complete Redemption</h4>
+          <div class="mb-4">
+            <div id="selected-reward-info" class="bg-indigo-50 rounded-xl p-4 mb-4"></div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">PayPal Email for Payout *</label>
+            <input type="email" id="payout-email" class="input-field" placeholder="your@paypal.com">
+            <p class="text-xs text-gray-400 mt-1">Enter the email associated with your PayPal account</p>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Payout Method</label>
+            <select id="payout-method" class="input-field">
+              <option value="paypal">PayPal</option>
+            </select>
+          </div>
+          <div id="redeem-error" class="hidden error-msg mb-4"></div>
+          <button onclick="submitRedeem()" class="btn-primary w-full">
+            <i class="fas fa-paper-plane mr-2"></i> Submit Redemption Request
+          </button>
+          <p class="text-xs text-gray-400 text-center mt-2">Payouts processed within 1-3 business days</p>
+        </div>
+      </div>
+
+      <!-- ── PROFILE PAGE ─────────────────────────────── -->
+      <div class="page" id="page-profile">
+        <div class="bg-white rounded-2xl border border-gray-100 p-6">
+          <h3 class="font-bold text-lg mb-6">Profile Settings</h3>
+          <div class="max-w-md">
+            <div class="mb-4">
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+              <input type="text" id="profile-name" class="input-field">
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Email (read only)</label>
+              <input type="email" id="profile-email" class="input-field bg-gray-50" readonly>
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
+              <input type="tel" id="profile-phone" class="input-field" placeholder="+1 234 567 8900">
+            </div>
+            <div class="mb-6">
+              <label class="block text-sm font-semibold text-gray-700 mb-1">PayPal Email (for rewards)</label>
+              <input type="email" id="profile-paypal" class="input-field" placeholder="your@paypal.com">
+            </div>
+            <div id="profile-msg" class="hidden mb-4"></div>
+            <button onclick="saveProfile()" class="btn-primary">
+              <i class="fas fa-save mr-2"></i> Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    let token = localStorage.getItem('rg_token')
+    let currentUser = null
+    let rewards = []
+    let selectedTier = null
+
+    const pageTitles = {
+      overview: 'Overview',
+      invitations: 'My Invitations',
+      reviews: 'My Reviews',
+      points: 'Points History',
+      redeem: 'Redeem Rewards',
+      profile: 'Profile Settings'
+    }
+
+    async function api(path, method = 'GET', body = null) {
+      const opts = {
+        method,
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+      }
+      if (body) opts.body = JSON.stringify(body)
+      const res = await fetch(path, opts)
+      return res.json()
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast')
+      t.textContent = msg
+      t.classList.add('show')
+      setTimeout(() => t.classList.remove('show'), 3500)
+    }
+
+    function showPage(name) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'))
+      document.getElementById('page-' + name).classList.add('active')
+      document.querySelectorAll('.sidebar-link').forEach(l => {
+        if (l.textContent.trim().toLowerCase().includes(pageTitles[name].toLowerCase().split(' ')[0].toLowerCase())) {
+          l.classList.add('active')
+        }
+      })
+      document.getElementById('page-title').textContent = pageTitles[name] || name
+      loadPageData(name)
+    }
+
+    async function loadPageData(name) {
+      if (name === 'overview') loadOverview()
+      else if (name === 'invitations') loadInvitations()
+      else if (name === 'reviews') loadReviews()
+      else if (name === 'points') loadPoints()
+      else if (name === 'redeem') loadRedeem()
+      else if (name === 'profile') loadProfile()
+    }
+
+    async function init() {
+      if (!token) { window.location.href = '/login.html?type=customer'; return }
+      const user = await api('/api/auth/me')
+      if (user.error) { window.location.href = '/login.html?type=customer'; return }
+      currentUser = user
+      document.getElementById('nav-name').textContent = user.name
+      document.getElementById('nav-points').textContent = user.points || 0
+      document.getElementById('page-date').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
+      loadOverview()
+    }
+
+    async function loadOverview() {
+      try {
+        const data = await api('/api/customer/dashboard')
+        const { customer: cust, recentTransactions, pendingInvites, rewards: rewardList } = data
+        rewards = rewardList || []
+
+        // Update nav
+        document.getElementById('avatar').textContent = cust.name.charAt(0).toUpperCase()
+        document.getElementById('avatar').style.background = cust.avatar_color || '#6366f1'
+        document.getElementById('nav-name').textContent = cust.name
+        document.getElementById('nav-points').textContent = cust.points.toLocaleString()
+        document.getElementById('welcome-name').textContent = cust.name.split(' ')[0]
+        document.getElementById('welcome-points').textContent = cust.points.toLocaleString()
+
+        document.getElementById('stat-points').textContent = cust.points.toLocaleString()
+        document.getElementById('stat-earned').textContent = cust.total_earned.toLocaleString()
+        document.getElementById('stat-reviews').textContent = cust.reviews_written
+        document.getElementById('stat-redeemed').textContent = '$' + (cust.total_redeemed / 100).toFixed(2)
+
+        // Progress bar
+        const nextTier = rewards.find(r => r.points_required > cust.points) || rewards[rewards.length - 1]
+        if (nextTier) {
+          const prevTier = rewards.filter(r => r.points_required <= cust.points).pop()
+          const start = prevTier?.points_required || 0
+          const pct = Math.min(100, Math.round((cust.points - start) / (nextTier.points_required - start) * 100))
+          document.getElementById('progress-section').innerHTML = `
+            <div class="flex justify-between text-sm mb-2">
+              <span class="font-medium">${cust.points.toLocaleString()} pts</span>
+              <span class="text-gray-500">${nextTier.points_required.toLocaleString()} pts for $${nextTier.reward_value}</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+            <p class="text-sm text-gray-500 mt-2">${(nextTier.points_required - cust.points).toLocaleString()} more points to unlock $${nextTier.reward_value} reward</p>
+          `
+        }
+
+        // Pending invite badge
+        if (pendingInvites?.length > 0) {
+          const badge = document.getElementById('invite-badge')
+          badge.textContent = pendingInvites.length
+          badge.style.display = 'inline'
+        }
+
+        // Recent Transactions
+        const txEl = document.getElementById('recent-transactions')
+        if (recentTransactions?.length) {
+          txEl.innerHTML = recentTransactions.slice(0,5).map(tx => `
+            <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm ${tx.amount > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">
+                  ${tx.amount > 0 ? '<i class="fas fa-plus"></i>' : '<i class="fas fa-minus"></i>'}
+                </div>
+                <div>
+                  <div class="text-sm font-medium">${tx.description || 'Transaction'}</div>
+                  <div class="text-xs text-gray-400">${new Date(tx.created_at).toLocaleDateString()}</div>
+                </div>
+              </div>
+              <div class="font-bold ${tx.amount > 0 ? 'tx-earn' : 'tx-redeem'}">${tx.amount > 0 ? '+' : ''}${tx.amount} pts</div>
+            </div>
+          `).join('')
+        } else {
+          txEl.innerHTML = '<div class="text-gray-400 text-sm text-center py-4">No transactions yet. Start writing reviews!</div>'
+        }
+
+        // Pending invites
+        const piEl = document.getElementById('pending-invites-list')
+        if (pendingInvites?.length) {
+          piEl.innerHTML = pendingInvites.map(inv => `
+            <div class="border border-gray-100 rounded-xl p-3">
+              <div class="flex items-center justify-between mb-2">
+                <div class="font-medium text-sm">${inv.business_name}</div>
+                <span class="badge badge-yellow">${inv.platform}</span>
+              </div>
+              <div class="text-sm text-gray-500 mb-2">Earn ${inv.points_offered} pts ($${(inv.points_offered/100).toFixed(2)})</div>
+              <a href="/review.html?token=${inv.token}" class="btn-primary text-xs py-1.5 px-3 inline-block">Write Review →</a>
+            </div>
+          `).join('')
+        } else {
+          piEl.innerHTML = '<div class="text-gray-400 text-sm text-center py-4">No pending invitations</div>'
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
+    async function loadInvitations() {
+      const el = document.getElementById('invitations-table')
+      try {
+        const data = await api('/api/customer/invitations')
+        if (!data.length) { el.innerHTML = '<div class="text-gray-400 text-center py-8">No invitations yet</div>'; return }
+        el.innerHTML = `
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead><tr class="border-b text-gray-500">
+                <th class="pb-3 text-left">Business</th>
+                <th class="pb-3 text-left">Platform</th>
+                <th class="pb-3 text-left">Points</th>
+                <th class="pb-3 text-left">Status</th>
+                <th class="pb-3 text-left">Date</th>
+                <th class="pb-3 text-left">Action</th>
+              </tr></thead>
+              <tbody class="divide-y divide-gray-50">
+                ${data.map(inv => `
+                  <tr>
+                    <td class="py-3 font-medium">${inv.business_name}</td>
+                    <td class="py-3"><span class="badge badge-blue">${inv.platform}</span></td>
+                    <td class="py-3 text-green-600 font-bold">+${inv.points_offered}</td>
+                    <td class="py-3"><span class="badge ${inv.status==='completed'?'badge-green':inv.status==='pending'?'badge-yellow':'badge-red'}">${inv.status}</span></td>
+                    <td class="py-3 text-gray-400">${new Date(inv.created_at).toLocaleDateString()}</td>
+                    <td class="py-3">${inv.status==='pending'?`<a href="/review.html?token=${inv.token}" class="text-indigo-600 font-semibold hover:underline">Write Review →</a>`:'<span class="text-gray-400">Done</span>'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `
+      } catch (e) {
+        el.innerHTML = '<div class="text-red-500 text-center py-4">Failed to load invitations</div>'
+      }
+    }
+
+    async function loadReviews() {
+      const el = document.getElementById('reviews-list')
+      try {
+        const data = await api('/api/customer/reviews')
+        if (!data.length) { el.innerHTML = '<div class="text-gray-400 text-center py-8">No reviews written yet</div>'; return }
+        el.innerHTML = data.map(r => `
+          <div class="border border-gray-100 rounded-xl p-4 mb-3">
+            <div class="flex items-start justify-between mb-2">
+              <div>
+                <div class="font-bold">${r.business_name}</div>
+                <div class="text-sm text-gray-400">${r.platform} · ${new Date(r.created_at).toLocaleDateString()}</div>
+              </div>
+              <div class="text-right">
+                <div class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+                <div class="text-green-600 text-sm font-bold">+${r.points_earned} pts</div>
+              </div>
+            </div>
+            ${r.title ? `<div class="font-semibold text-sm mb-1">${r.title}</div>` : ''}
+            <div class="text-sm text-gray-600">${r.content}</div>
+            ${r.business_response ? `
+              <div class="mt-3 bg-gray-50 rounded-lg p-3 border-l-4 border-indigo-300 text-sm">
+                <strong class="text-gray-700">Business Response:</strong>
+                <div class="text-gray-600 mt-1">${r.business_response}</div>
+              </div>
+            ` : ''}
+            ${r.verified ? '<div class="mt-2"><span class="badge badge-green"><i class="fas fa-check mr-1"></i>Verified</span></div>' : ''}
+          </div>
+        `).join('')
+      } catch (e) {
+        el.innerHTML = '<div class="text-red-500 text-center py-4">Failed to load reviews</div>'
+      }
+    }
+
+    async function loadPoints() {
+      const el = document.getElementById('points-table')
+      try {
+        const data = await api('/api/customer/points')
+        document.getElementById('points-balance-display').textContent = (data.points || 0).toLocaleString()
+        const txs = data.transactions || []
+        if (!txs.length) { el.innerHTML = '<div class="text-gray-400 text-center py-8">No transactions yet</div>'; return }
+        el.innerHTML = `
+          <table class="w-full text-sm">
+            <thead><tr class="border-b text-gray-500">
+              <th class="pb-3 text-left">Description</th>
+              <th class="pb-3 text-left">Type</th>
+              <th class="pb-3 text-right">Points</th>
+              <th class="pb-3 text-right">Balance</th>
+              <th class="pb-3 text-left">Date</th>
+            </tr></thead>
+            <tbody class="divide-y divide-gray-50">
+              ${txs.map(tx => `
+                <tr>
+                  <td class="py-2.5">${tx.description || 'Transaction'}</td>
+                  <td class="py-2.5"><span class="badge ${tx.type==='earn'?'badge-green':'badge-red'}">${tx.type}</span></td>
+                  <td class="py-2.5 text-right font-bold ${tx.amount>0?'tx-earn':'tx-redeem'}">${tx.amount>0?'+':''}${tx.amount}</td>
+                  <td class="py-2.5 text-right text-gray-500">${tx.balance_after}</td>
+                  <td class="py-2.5 text-gray-400">${new Date(tx.created_at).toLocaleDateString()}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `
+      } catch (e) {
+        el.innerHTML = '<div class="text-red-500 text-center py-4">Failed to load points</div>'
+      }
+    }
+
+    async function loadRedeem() {
+      try {
+        const [tiers, pts] = await Promise.all([
+          api('/api/rewards'),
+          api('/api/customer/points')
+        ])
+        rewards = tiers
+        const balance = pts.points || 0
+        document.getElementById('redeem-balance').textContent = balance.toLocaleString() + ' pts'
+
+        const icons = { 500: '☕', 1000: '🥗', 2500: '🛍️', 5000: '🎁', 10000: '💰' }
+        document.getElementById('reward-grid').innerHTML = tiers.map(tier => `
+          <div class="reward-card ${balance >= tier.points_required ? '' : 'opacity-50'}" 
+               id="tier-${tier.id}"
+               onclick="${balance >= tier.points_required ? `selectTier(${tier.id})` : 'showToast(\"Not enough points\")'}" >
+            <div class="text-4xl mb-2">${icons[tier.points_required] || '💎'}</div>
+            <div class="font-extrabold text-green-600 text-xl">$${tier.reward_value}</div>
+            <div class="text-gray-500 text-sm">${tier.points_required.toLocaleString()} pts</div>
+            <div class="text-xs text-gray-400 mt-1">${tier.name}</div>
+            ${balance >= tier.points_required ? '<div class="text-xs text-green-500 mt-1 font-semibold">✓ Unlocked</div>' : '<div class="text-xs text-gray-400 mt-1">Locked</div>'}
+          </div>
+        `).join('')
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
+    function selectTier(tierId) {
+      document.querySelectorAll('.reward-card').forEach(c => c.classList.remove('selected'))
+      document.getElementById('tier-' + tierId).classList.add('selected')
+      selectedTier = rewards.find(r => r.id === tierId)
+      if (!selectedTier) return
+
+      document.getElementById('redeem-form').classList.remove('hidden')
+      document.getElementById('selected-reward-info').innerHTML = `
+        <div class="flex items-center gap-3">
+          <div class="text-3xl">🎁</div>
+          <div>
+            <div class="font-bold">$${selectedTier.reward_value} PayPal Payout</div>
+            <div class="text-sm text-gray-500">${selectedTier.points_required.toLocaleString()} points will be deducted</div>
+          </div>
+        </div>
+      `
+      document.getElementById('redeem-form').scrollIntoView({ behavior: 'smooth' })
+    }
+
+    async function submitRedeem() {
+      if (!selectedTier) return
+      const payoutEmail = document.getElementById('payout-email').value
+      if (!payoutEmail) { document.getElementById('redeem-error').textContent = 'Please enter your PayPal email'; document.getElementById('redeem-error').classList.remove('hidden'); return }
+
+      const res = await api('/api/customer/redeem', 'POST', {
+        tier_id: selectedTier.id,
+        payout_email: payoutEmail,
+        payout_method: document.getElementById('payout-method').value
+      })
+      if (res.error) { document.getElementById('redeem-error').textContent = res.error; document.getElementById('redeem-error').classList.remove('hidden'); return }
+      showToast('🎉 ' + res.message)
+      document.getElementById('redeem-form').classList.add('hidden')
+      loadRedeem()
+      document.getElementById('nav-points').textContent = (parseInt(document.getElementById('nav-points').textContent.replace(',','')) - selectedTier.points_required).toLocaleString()
+    }
+
+    async function loadProfile() {
+      if (!currentUser) return
+      document.getElementById('profile-name').value = currentUser.name || ''
+      document.getElementById('profile-email').value = currentUser.email || ''
+      document.getElementById('profile-phone').value = currentUser.phone || ''
+      document.getElementById('profile-paypal').value = currentUser.paypal_email || ''
+    }
+
+    async function saveProfile() {
+      const res = await api('/api/customer/profile', 'PUT', {
+        name: document.getElementById('profile-name').value,
+        phone: document.getElementById('profile-phone').value,
+        paypal_email: document.getElementById('profile-paypal').value
+      })
+      if (res.error) { showToast('Error: ' + res.error); return }
+      currentUser = res
+      showToast('Profile saved!')
+    }
+
+    function logout() {
+      fetch('/api/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } })
+      localStorage.removeItem('rg_token')
+      localStorage.removeItem('rg_user')
+      localStorage.removeItem('rg_type')
+      window.location.href = '/login.html'
+    }
+
+    document.getElementById('page-date').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
+    init()
+  </script>
+  <style>
+    .error-msg { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; }
+  </style>
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReviewGate — Turn Customers Into Advocates</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --accent: #10b981;
+      --gold: #f59e0b;
+    }
+    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+    .stat-number { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero-badge { animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    .stars { color: #f59e0b; }
+    .platform-logo { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    .testimonial-card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .pricing-popular { border: 2px solid var(--primary); position: relative; }
+    .pricing-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 4px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+    nav { backdrop-filter: blur(12px); background: rgba(255,255,255,0.95); }
+    .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 12px 28px; border-radius: 12px; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.2s, transform 0.1s; }
+    .btn-primary:hover { opacity: 0.9; transform: scale(1.02); }
+    .btn-outline { background: transparent; color: var(--primary); padding: 12px 28px; border-radius: 12px; font-weight: 600; cursor: pointer; border: 2px solid var(--primary); transition: all 0.2s; }
+    .btn-outline:hover { background: var(--primary); color: white; }
+    .how-step { position: relative; }
+    .how-step::after { content: ""; position: absolute; top: 32px; right: -50%; width: 100%; height: 2px; background: linear-gradient(90deg, #667eea, transparent); }
+    .how-step:last-child::after { display: none; }
+    .notification-bubble { background: white; border-radius: 12px; padding: 12px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
+  </style>
+</head>
+<body class="font-sans bg-gray-50">
+
+<!-- Navigation -->
+<nav class="fixed top-0 left-0 right-0 z-50 shadow-sm">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center text-white font-bold text-lg">R</div>
+      <span class="text-xl font-bold text-gray-900">Review<span style="color:#6366f1">Gate</span></span>
+    </div>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="#features" class="text-gray-600 hover:text-indigo-600 font-medium">Features</a>
+      <a href="#how-it-works" class="text-gray-600 hover:text-indigo-600 font-medium">How It Works</a>
+      <a href="#earn-rewards" class="text-gray-600 hover:text-indigo-600 font-medium">Earn Rewards</a>
+      <a href="#pricing" class="text-gray-600 hover:text-indigo-600 font-medium">Pricing</a>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="/login.html" class="btn-outline" style="padding:8px 20px;font-size:0.9rem">Sign In</a>
+      <a href="/register.html" class="btn-primary" style="padding:8px 20px;font-size:0.9rem">Get Started Free</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="pt-28 pb-20 px-6 gradient-bg text-white relative overflow-hidden">
+  <div class="absolute inset-0 opacity-10">
+    <div class="absolute top-20 left-10 w-64 h-64 bg-white rounded-full blur-3xl"></div>
+    <div class="absolute bottom-10 right-10 w-96 h-96 bg-purple-300 rounded-full blur-3xl"></div>
+  </div>
+  <div class="max-w-7xl mx-auto relative">
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+      <div>
+        <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium mb-6">
+          <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+          Trusted by 12,400+ businesses worldwide
+        </div>
+        <h1 class="text-5xl font-extrabold leading-tight mb-6">
+          Turn Customers Into<br><span class="text-yellow-300">Loyal Advocates</span>
+        </h1>
+        <p class="text-xl text-white/85 mb-8 leading-relaxed">
+          ReviewGate rewards customers with real cash for leaving authentic reviews. Businesses get more 5-star ratings, customers earn money — everyone wins.
+        </p>
+        <div class="flex flex-wrap gap-4 mb-10">
+          <a href="/register.html?type=business" class="bg-white text-indigo-700 font-bold px-8 py-4 rounded-xl hover:bg-gray-100 transition shadow-lg">
+            <i class="fas fa-building mr-2"></i>Start for Free
+          </a>
+          <a href="/register.html?type=customer" class="bg-white/20 backdrop-blur-sm text-white font-bold px-8 py-4 rounded-xl hover:bg-white/30 transition border border-white/30">
+            <i class="fas fa-gift mr-2"></i>Earn Money Now
+          </a>
+        </div>
+        <div class="flex items-center gap-6 text-sm">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-check-circle text-green-400"></i>
+            <span>No credit card required</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <i class="fas fa-check-circle text-green-400"></i>
+            <span>50 free invites/month</span>
+          </div>
+        </div>
+      </div>
+      <div class="relative">
+        <!-- Dashboard mockup -->
+        <div class="bg-white rounded-2xl shadow-2xl p-6 text-gray-900">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-lg">Live Dashboard</h3>
+            <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">● Live</span>
+          </div>
+          <div class="grid grid-cols-3 gap-3 mb-4">
+            <div class="bg-indigo-50 rounded-xl p-3 text-center">
+              <div class="text-2xl font-bold text-indigo-600">1,284</div>
+              <div class="text-xs text-gray-500">Reviews</div>
+            </div>
+            <div class="bg-yellow-50 rounded-xl p-3 text-center">
+              <div class="text-2xl font-bold text-yellow-600">4.7★</div>
+              <div class="text-xs text-gray-500">Avg Rating</div>
+            </div>
+            <div class="bg-green-50 rounded-xl p-3 text-center">
+              <div class="text-2xl font-bold text-green-600">71%</div>
+              <div class="text-xs text-gray-500">Conversion</div>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg">
+              <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-bold text-indigo-600">A</div>
+              <div class="flex-1">
+                <div class="text-sm font-medium">Alex Johnson</div>
+                <div class="text-xs text-gray-400">Google • 2 min ago</div>
+              </div>
+              <div class="text-yellow-500 text-sm">★★★★★</div>
+            </div>
+            <div class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg">
+              <div class="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-sm font-bold text-pink-600">S</div>
+              <div class="flex-1">
+                <div class="text-sm font-medium">Sarah Miller</div>
+                <div class="text-xs text-gray-400">Trustpilot • 15 min ago</div>
+              </div>
+              <div class="text-yellow-500 text-sm">★★★★★</div>
+            </div>
+          </div>
+        </div>
+        <!-- Floating badges -->
+        <div class="absolute -top-4 -right-4 notification-bubble hero-badge" style="animation-delay:0.5s">
+          <i class="fas fa-star text-yellow-500"></i>
+          <span class="font-medium">+$5 earned!</span>
+        </div>
+        <div class="absolute -bottom-4 -left-4 notification-bubble hero-badge" style="animation-delay:1s">
+          <i class="fas fa-check-circle text-green-500"></i>
+          <span class="font-medium">New 5★ review!</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Bar -->
+<section class="bg-white py-10 border-b">
+  <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+    <div>
+      <div class="stat-number" id="stat-businesses">12,400+</div>
+      <div class="text-gray-500 font-medium">Businesses</div>
+    </div>
+    <div>
+      <div class="stat-number">2.8M+</div>
+      <div class="text-gray-500 font-medium">Authentic Reviews</div>
+    </div>
+    <div>
+      <div class="stat-number">$4.2M+</div>
+      <div class="text-gray-500 font-medium">Paid to Customers</div>
+    </div>
+    <div>
+      <div class="stat-number">4.7★</div>
+      <div class="text-gray-500 font-medium">Avg Rating Boost</div>
+    </div>
+  </div>
+</section>
+
+<!-- How Earn & Rewards Works -->
+<section id="earn-rewards" class="py-20 px-6 bg-gradient-to-br from-indigo-50 to-purple-50">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <div class="inline-block bg-indigo-100 text-indigo-700 text-sm font-bold px-4 py-2 rounded-full mb-4">
+        💰 FOR CUSTOMERS
+      </div>
+      <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Earn Real Money For Your Reviews</h2>
+      <p class="text-xl text-gray-600">Write honest reviews and get paid. It's that simple.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8 mb-12">
+      <div class="bg-white rounded-2xl p-8 text-center card-hover shadow-sm">
+        <div class="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">📧</div>
+        <h3 class="text-xl font-bold mb-3">1. Get Invited</h3>
+        <p class="text-gray-500">Receive an invitation from a business you've visited. Click the link to see how many points you'll earn.</p>
+      </div>
+      <div class="bg-white rounded-2xl p-8 text-center card-hover shadow-sm">
+        <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">⭐</div>
+        <h3 class="text-xl font-bold mb-3">2. Write Your Review</h3>
+        <p class="text-gray-500">Share your honest experience. We believe in authentic reviews — your opinion matters!</p>
+      </div>
+      <div class="bg-white rounded-2xl p-8 text-center card-hover shadow-sm">
+        <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">💵</div>
+        <h3 class="text-xl font-bold mb-3">3. Get Paid</h3>
+        <p class="text-gray-500">Earn points instantly. Redeem for real PayPal cash — $5, $10, $25, $50 or $100!</p>
+      </div>
+    </div>
+    <!-- Rewards showcase -->
+    <div class="bg-white rounded-2xl p-8 shadow-sm">
+      <h3 class="text-2xl font-bold text-center mb-8">💎 Reward Tiers</h3>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="text-center p-4 bg-gray-50 rounded-xl">
+          <div class="text-3xl mb-2">☕</div>
+          <div class="font-bold text-green-600">$5</div>
+          <div class="text-sm text-gray-500">500 pts</div>
+        </div>
+        <div class="text-center p-4 bg-blue-50 rounded-xl">
+          <div class="text-3xl mb-2">🥗</div>
+          <div class="font-bold text-green-600">$10</div>
+          <div class="text-sm text-gray-500">1,000 pts</div>
+        </div>
+        <div class="text-center p-4 bg-purple-50 rounded-xl">
+          <div class="text-3xl mb-2">🛍️</div>
+          <div class="font-bold text-green-600">$25</div>
+          <div class="text-sm text-gray-500">2,500 pts</div>
+        </div>
+        <div class="text-center p-4 bg-orange-50 rounded-xl">
+          <div class="text-3xl mb-2">🎁</div>
+          <div class="font-bold text-green-600">$50</div>
+          <div class="text-sm text-gray-500">5,000 pts</div>
+        </div>
+        <div class="text-center p-4 bg-yellow-50 rounded-xl">
+          <div class="text-3xl mb-2">💰</div>
+          <div class="font-bold text-green-600">$100</div>
+          <div class="text-sm text-gray-500">10,000 pts</div>
+        </div>
+      </div>
+      <div class="text-center mt-6">
+        <a href="/register.html?type=customer" class="btn-primary inline-block">Start Earning Today</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features" class="py-20 px-6 bg-white">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <div class="inline-block bg-purple-100 text-purple-700 text-sm font-bold px-4 py-2 rounded-full mb-4">
+        🏢 FOR BUSINESSES
+      </div>
+      <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Everything You Need to Grow Reviews</h2>
+      <p class="text-xl text-gray-600">Powerful tools to collect, manage, and leverage customer feedback.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="p-6 border border-gray-100 rounded-2xl card-hover">
+        <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 text-xl mb-4">
+          <i class="fas fa-paper-plane"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2">Smart Invite System</h3>
+        <p class="text-gray-500">Send personalized review invitations via email with custom points rewards. Set expiry dates and track opens.</p>
+      </div>
+      <div class="p-6 border border-gray-100 rounded-2xl card-hover">
+        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 text-xl mb-4">
+          <i class="fas fa-chart-bar"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2">Analytics Dashboard</h3>
+        <p class="text-gray-500">Track reviews, ratings, and invite conversion in real-time. See trends and identify improvement areas.</p>
+      </div>
+      <div class="p-6 border border-gray-100 rounded-2xl card-hover">
+        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 text-xl mb-4">
+          <i class="fas fa-globe"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2">Multi-Platform</h3>
+        <p class="text-gray-500">Collect reviews across Google, Trustpilot, Facebook, Yelp, and TripAdvisor — all from one dashboard.</p>
+      </div>
+      <div class="p-6 border border-gray-100 rounded-2xl card-hover">
+        <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center text-yellow-600 text-xl mb-4">
+          <i class="fas fa-reply"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2">Review Responses</h3>
+        <p class="text-gray-500">Respond to reviews directly from the dashboard. Show customers you care about their feedback.</p>
+      </div>
+      <div class="p-6 border border-gray-100 rounded-2xl card-hover">
+        <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center text-red-600 text-xl mb-4">
+          <i class="fas fa-bolt"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2">Bulk Invitations</h3>
+        <p class="text-gray-500">Upload a CSV of customers and send bulk invitations in seconds. Save hours of manual work.</p>
+      </div>
+      <div class="p-6 border border-gray-100 rounded-2xl card-hover">
+        <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center text-teal-600 text-xl mb-4">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2">100% Compliant</h3>
+        <p class="text-gray-500">Built to comply with FTC guidelines and platform terms of service. Authentic reviews only — no fake reviews.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Platforms -->
+<section class="py-16 px-6 bg-gray-50">
+  <div class="max-w-7xl mx-auto text-center">
+    <h2 class="text-3xl font-bold mb-4">Works With Your Favorite Platforms</h2>
+    <p class="text-gray-500 mb-10">Connect to all major review platforms in one click</p>
+    <div class="flex flex-wrap justify-center gap-6">
+      <div class="flex items-center gap-3 bg-white px-6 py-4 rounded-2xl shadow-sm card-hover">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/24px-Google_%22G%22_Logo.svg.png" alt="Google" class="w-6 h-6">
+        <span class="font-semibold">Google Business</span>
+      </div>
+      <div class="flex items-center gap-3 bg-white px-6 py-4 rounded-2xl shadow-sm card-hover">
+        <span class="text-green-500 text-xl">★</span>
+        <span class="font-semibold">Trustpilot</span>
+      </div>
+      <div class="flex items-center gap-3 bg-white px-6 py-4 rounded-2xl shadow-sm card-hover">
+        <span class="text-blue-600 text-xl"><i class="fab fa-facebook"></i></span>
+        <span class="font-semibold">Facebook</span>
+      </div>
+      <div class="flex items-center gap-3 bg-white px-6 py-4 rounded-2xl shadow-sm card-hover">
+        <span class="text-red-500 text-xl"><i class="fab fa-yelp"></i></span>
+        <span class="font-semibold">Yelp</span>
+      </div>
+      <div class="flex items-center gap-3 bg-white px-6 py-4 rounded-2xl shadow-sm card-hover">
+        <span class="text-green-700 text-xl">✈</span>
+        <span class="font-semibold">TripAdvisor</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section id="pricing" class="py-20 px-6 bg-white">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
+      <p class="text-xl text-gray-600">Start free. Scale as you grow.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      <!-- Starter -->
+      <div class="border border-gray-200 rounded-2xl p-8">
+        <h3 class="text-xl font-bold mb-2">Starter</h3>
+        <div class="text-4xl font-extrabold mb-1">$0</div>
+        <div class="text-gray-500 mb-6">Forever free</div>
+        <ul class="space-y-3 mb-8 text-sm">
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> 50 invites/month</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> 1 review platform</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Basic dashboard</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Email support</li>
+        </ul>
+        <a href="/register.html?type=business&plan=starter" class="block text-center btn-outline w-full">Get Started Free</a>
+      </div>
+      <!-- Growth (Popular) -->
+      <div class="pricing-popular rounded-2xl p-8 relative shadow-lg">
+        <div class="pricing-badge">MOST POPULAR</div>
+        <h3 class="text-xl font-bold mb-2">Growth</h3>
+        <div class="text-4xl font-extrabold mb-1" style="color:#6366f1">$49</div>
+        <div class="text-gray-500 mb-6">per month</div>
+        <ul class="space-y-3 mb-8 text-sm">
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> 500 invites/month</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> 5 platforms</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Full analytics</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Bulk invites</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Priority support</li>
+        </ul>
+        <a href="/register.html?type=business&plan=growth" class="block text-center btn-primary w-full">Start Growth Plan</a>
+      </div>
+      <!-- Enterprise -->
+      <div class="border border-gray-200 rounded-2xl p-8">
+        <h3 class="text-xl font-bold mb-2">Enterprise</h3>
+        <div class="text-4xl font-extrabold mb-1">$199</div>
+        <div class="text-gray-500 mb-6">per month</div>
+        <ul class="space-y-3 mb-8 text-sm">
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Unlimited invites</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> All platforms</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> API access</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Dedicated manager</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Custom branding</li>
+        </ul>
+        <a href="/register.html?type=business&plan=enterprise" class="block text-center btn-outline w-full">Contact Sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="py-20 px-6 gradient-bg text-white text-center">
+  <div class="max-w-3xl mx-auto">
+    <h2 class="text-4xl font-extrabold mb-4">Ready to Get More Reviews?</h2>
+    <p class="text-xl text-white/85 mb-8">Join thousands of businesses already using ReviewGate to build trust and grow their reputation.</p>
+    <div class="flex flex-wrap justify-center gap-4">
+      <a href="/register.html?type=business" class="bg-white text-indigo-700 font-bold px-8 py-4 rounded-xl hover:bg-gray-100 transition shadow-lg">
+        Start Free as Business
+      </a>
+      <a href="/register.html?type=customer" class="bg-white/20 border border-white/30 text-white font-bold px-8 py-4 rounded-xl hover:bg-white/30 transition">
+        Earn as Customer
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-400 py-12 px-6">
+  <div class="max-w-7xl mx-auto grid md:grid-cols-4 gap-8">
+    <div>
+      <div class="flex items-center gap-2 mb-4">
+        <div class="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center text-white font-bold">R</div>
+        <span class="text-white font-bold">ReviewGate</span>
+      </div>
+      <p class="text-sm">The platform that rewards authentic reviews and helps businesses grow their reputation.</p>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold mb-3">Product</h4>
+      <ul class="space-y-2 text-sm">
+        <li><a href="#features" class="hover:text-white">Features</a></li>
+        <li><a href="#pricing" class="hover:text-white">Pricing</a></li>
+        <li><a href="/register.html" class="hover:text-white">Sign Up</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold mb-3">For Customers</h4>
+      <ul class="space-y-2 text-sm">
+        <li><a href="#earn-rewards" class="hover:text-white">How It Works</a></li>
+        <li><a href="/register.html?type=customer" class="hover:text-white">Start Earning</a></li>
+        <li><a href="/login.html?type=customer" class="hover:text-white">Customer Login</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold mb-3">Company</h4>
+      <ul class="space-y-2 text-sm">
+        <li><a href="#" class="hover:text-white">About</a></li>
+        <li><a href="#" class="hover:text-white">Privacy Policy</a></li>
+        <li><a href="#" class="hover:text-white">Terms of Service</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="border-t border-gray-800 mt-8 pt-6 text-center text-sm">
+    &copy; 2026 ReviewGate. All rights reserved.
+  </div>
+</footer>
+
+<script>
+  // Load live stats
+  fetch('/api/stats').then(r => r.json()).then(data => {
+    if (data.businesses) {
+      document.getElementById('stat-businesses').textContent = data.businesses.toLocaleString() + '+'
+    }
+  }).catch(() => {})
+</script>
+</body>
+</html>

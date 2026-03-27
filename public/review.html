@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Write Your Review — ReviewGate</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .star { font-size: 2.5rem; cursor: pointer; transition: transform 0.1s; color: #d1d5db; }
+    .star:hover, .star.active { color: #f59e0b; transform: scale(1.1); }
+    .input-field { width: 100%; padding: 12px 16px; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+    .input-field:focus { border-color: #6366f1; }
+    .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 14px 28px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; font-size: 1rem; transition: opacity 0.2s; }
+    .btn-primary:hover { opacity: 0.9; }
+    .success-screen { display: none; }
+    .platform-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+  </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="gradient-bg text-white py-6 px-6 text-center">
+    <div class="flex items-center justify-center gap-2 mb-2">
+      <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold">R</div>
+      <span class="text-lg font-bold">ReviewGate</span>
+    </div>
+    <p class="text-white/80 text-sm">Verified Review Platform</p>
+  </div>
+
+  <!-- Loading State -->
+  <div id="loading" class="max-w-lg mx-auto mt-12 text-center px-6">
+    <i class="fas fa-spinner fa-spin text-4xl text-indigo-400"></i>
+    <p class="mt-4 text-gray-500">Loading invitation...</p>
+  </div>
+
+  <!-- Error State -->
+  <div id="error-state" class="hidden max-w-lg mx-auto mt-12 text-center px-6">
+    <div class="text-6xl mb-4">😕</div>
+    <h2 class="text-2xl font-bold text-gray-900 mb-2">Invalid Invitation</h2>
+    <p class="text-gray-500 mb-6" id="error-message">This invitation link is invalid or has expired.</p>
+    <a href="/" class="text-indigo-600 hover:underline">← Back to ReviewGate</a>
+  </div>
+
+  <!-- Review Form -->
+  <div id="review-form-container" class="hidden max-w-lg mx-auto mt-8 px-4 pb-12">
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <!-- Business Info -->
+      <div class="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 border-b">
+        <div class="flex items-center gap-4">
+          <div class="w-16 h-16 rounded-xl gradient-bg flex items-center justify-center text-white text-2xl font-bold" id="biz-avatar">A</div>
+          <div>
+            <h2 class="text-xl font-bold text-gray-900" id="biz-name">Business Name</h2>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="platform-badge bg-blue-100 text-blue-700" id="platform-badge">
+                <i class="fas fa-star"></i> <span id="platform-name">Google</span>
+              </span>
+              <span class="text-sm text-gray-500" id="biz-industry">Industry</span>
+            </div>
+          </div>
+        </div>
+        <!-- Points Reward Banner -->
+        <div class="mt-4 bg-white rounded-xl p-3 flex items-center gap-3 border border-indigo-100">
+          <div class="text-2xl">🎁</div>
+          <div>
+            <div class="font-bold text-gray-900"><span id="points-display">100</span> Points = $<span id="cash-display">1.00</span></div>
+            <div class="text-sm text-gray-500">Earn rewards for your honest review</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="p-6">
+        <h3 class="text-lg font-bold mb-4">Share Your Experience</h3>
+
+        <!-- Star Rating -->
+        <div class="mb-6">
+          <label class="block text-sm font-semibold text-gray-700 mb-3">How would you rate your experience? *</label>
+          <div class="flex gap-2" id="star-container">
+            <span class="star" data-value="1" onclick="setRating(1)">★</span>
+            <span class="star" data-value="2" onclick="setRating(2)">★</span>
+            <span class="star" data-value="3" onclick="setRating(3)">★</span>
+            <span class="star" data-value="4" onclick="setRating(4)">★</span>
+            <span class="star" data-value="5" onclick="setRating(5)">★</span>
+          </div>
+          <div class="text-sm text-gray-400 mt-1" id="rating-label">Click to rate</div>
+        </div>
+
+        <!-- Review Title -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Review Title</label>
+          <input type="text" id="review-title" class="input-field" placeholder="Sum up your experience in a few words">
+        </div>
+
+        <!-- Review Content -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Your Review *</label>
+          <textarea id="review-content" class="input-field" rows="4" placeholder="Tell us about your experience in detail. What did you like? What could be improved?" style="resize:vertical" minlength="20" required></textarea>
+          <div class="text-xs text-gray-400 mt-1"><span id="char-count">0</span> / minimum 20 characters</div>
+        </div>
+
+        <!-- Customer Info (if not logged in) -->
+        <div id="customer-info-section">
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Your Name *</label>
+            <input type="text" id="customer-name" class="input-field" placeholder="First name only is fine" required>
+          </div>
+          <div class="mb-6">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Email (to receive your points) *</label>
+            <input type="email" id="customer-email" class="input-field" placeholder="you@example.com" required>
+          </div>
+        </div>
+
+        <!-- Platform redirect note -->
+        <div class="bg-blue-50 rounded-xl p-3 mb-6 text-sm text-blue-700 flex items-start gap-2">
+          <i class="fas fa-info-circle mt-0.5"></i>
+          <div>
+            <strong>Next step:</strong> After submitting, please also post your review on <span id="platform-reminder">the platform</span> to complete the process and receive your reward.
+          </div>
+        </div>
+
+        <div id="form-error" class="hidden error-msg mb-4"></div>
+
+        <button class="btn-primary w-full" onclick="submitReview()" id="submit-btn">
+          <i class="fas fa-paper-plane mr-2"></i> Submit Review & Earn Points
+        </button>
+
+        <p class="text-xs text-gray-400 text-center mt-4">
+          By submitting, you confirm this is your honest experience and agree to our <a href="#" class="underline">Terms of Service</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success State -->
+  <div id="success-state" class="hidden max-w-lg mx-auto mt-12 px-4 pb-12">
+    <div class="bg-white rounded-2xl shadow-lg p-8 text-center">
+      <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <i class="fas fa-check-circle text-green-500 text-4xl"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">Review Submitted!</h2>
+      <p class="text-gray-500 mb-6">Thank you for sharing your honest experience!</p>
+      
+      <!-- Points earned -->
+      <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4 mb-6">
+        <div class="text-4xl font-extrabold text-indigo-600 mb-1">+<span id="points-earned">100</span> pts</div>
+        <div class="text-gray-600">added to your account</div>
+        <div class="text-sm text-gray-500 mt-1">≈ $<span id="cash-earned">1.00</span> in rewards</div>
+      </div>
+
+      <div class="space-y-3 mb-8">
+        <div class="flex items-center gap-3 text-sm text-left bg-yellow-50 rounded-lg p-3">
+          <i class="fas fa-external-link-alt text-yellow-500"></i>
+          <span><strong>Important:</strong> Please also post your review on <span id="platform-link-text">the platform</span> to fully complete the process.</span>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <a href="/register.html?type=customer" class="flex-1 bg-indigo-600 text-white font-semibold py-3 rounded-xl hover:bg-indigo-700 transition">
+          Create Account & Track Points
+        </a>
+        <a href="/" class="flex-1 border border-gray-200 text-gray-600 font-semibold py-3 rounded-xl hover:bg-gray-50 transition">
+          Back to Home
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search)
+    const token = urlParams.get('token') || window.location.pathname.split('/review/')[1]?.split('?')[0]
+    let selectedRating = 0
+    let invData = null
+
+    const ratingLabels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent!']
+    const platformColors = {
+      google: 'bg-blue-100 text-blue-700',
+      trustpilot: 'bg-green-100 text-green-700',
+      facebook: 'bg-blue-100 text-blue-800',
+      yelp: 'bg-red-100 text-red-700',
+      tripadvisor: 'bg-teal-100 text-teal-700'
+    }
+
+    async function loadInvitation() {
+      if (!token) {
+        document.getElementById('loading').classList.add('hidden')
+        document.getElementById('error-state').classList.remove('hidden')
+        document.getElementById('error-message').textContent = 'No invitation token found in URL.'
+        return
+      }
+
+      try {
+        const res = await fetch('/api/review/' + token)
+        const data = await res.json()
+
+        document.getElementById('loading').classList.add('hidden')
+
+        if (data.error) {
+          document.getElementById('error-state').classList.remove('hidden')
+          document.getElementById('error-message').textContent = data.error
+          return
+        }
+
+        invData = data
+        document.getElementById('review-form-container').classList.remove('hidden')
+
+        // Populate fields
+        document.getElementById('biz-avatar').textContent = (data.business_name || 'B').charAt(0).toUpperCase()
+        document.getElementById('biz-name').textContent = data.business_name || 'Business'
+        document.getElementById('biz-industry').textContent = data.industry || ''
+        document.getElementById('platform-name').textContent = capitalize(data.platform || 'Google')
+        document.getElementById('platform-reminder').textContent = capitalize(data.platform || 'the platform')
+        document.getElementById('points-display').textContent = data.points_offered || 100
+        document.getElementById('cash-display').textContent = ((data.points_offered || 100) / 100).toFixed(2)
+
+        const platformBadge = document.getElementById('platform-badge')
+        platformBadge.className = 'platform-badge ' + (platformColors[data.platform] || 'bg-gray-100 text-gray-700')
+
+        if (data.customer_name) {
+          document.getElementById('customer-name').value = data.customer_name
+        }
+        if (data.customer_email) {
+          document.getElementById('customer-email').value = data.customer_email
+        }
+
+        if (data.message) {
+          const msgDiv = document.createElement('div')
+          msgDiv.className = 'bg-gray-50 rounded-xl p-3 mb-4 text-sm text-gray-600 italic border-l-4 border-indigo-300'
+          msgDiv.innerHTML = '<strong>Message from business:</strong> ' + data.message
+          document.getElementById('review-form-container').querySelector('.p-6').insertBefore(msgDiv, document.querySelector('.p-6 h3'))
+        }
+      } catch (err) {
+        document.getElementById('loading').classList.add('hidden')
+        document.getElementById('error-state').classList.remove('hidden')
+        document.getElementById('error-message').textContent = 'Failed to load invitation. Please try again.'
+      }
+    }
+
+    function capitalize(str) {
+      return str ? str.charAt(0).toUpperCase() + str.slice(1) : str
+    }
+
+    function setRating(value) {
+      selectedRating = value
+      const stars = document.querySelectorAll('.star')
+      stars.forEach((s, i) => {
+        s.classList.toggle('active', i < value)
+      })
+      document.getElementById('rating-label').textContent = ratingLabels[value]
+    }
+
+    document.getElementById('review-content').addEventListener('input', function() {
+      document.getElementById('char-count').textContent = this.value.length
+    })
+
+    async function submitReview() {
+      if (!selectedRating) {
+        showError('Please select a star rating')
+        return
+      }
+      const content = document.getElementById('review-content').value
+      if (content.length < 20) {
+        showError('Review must be at least 20 characters')
+        return
+      }
+      const name = document.getElementById('customer-name').value
+      const email = document.getElementById('customer-email').value
+      if (!name || !email) {
+        showError('Please enter your name and email')
+        return
+      }
+
+      const btn = document.getElementById('submit-btn')
+      btn.disabled = true
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Submitting...'
+
+      try {
+        const res = await fetch('/api/review/' + token + '/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rating: selectedRating,
+            title: document.getElementById('review-title').value,
+            content,
+            customer_name: name,
+            customer_email: email
+          })
+        })
+        const data = await res.json()
+
+        if (data.error) {
+          showError(data.error)
+          btn.disabled = false
+          btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> Submit Review & Earn Points'
+          return
+        }
+
+        // Show success
+        document.getElementById('review-form-container').classList.add('hidden')
+        document.getElementById('success-state').classList.remove('hidden')
+        document.getElementById('points-earned').textContent = data.points_earned || 100
+        document.getElementById('cash-earned').textContent = ((data.points_earned || 100) / 100).toFixed(2)
+        document.getElementById('platform-link-text').textContent = capitalize(invData?.platform || 'the platform')
+      } catch (err) {
+        showError('Network error. Please try again.')
+        btn.disabled = false
+        btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> Submit Review & Earn Points'
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('form-error')
+      el.textContent = msg
+      el.classList.remove('hidden')
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+
+    // Check if coming from /review/TOKEN path format
+    if (!token && window.location.pathname.startsWith('/review/')) {
+      // handled above
+    }
+
+    loadInvitation()
+  </script>
+  <style>
+    .error-msg { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; }
+  </style>
+</body>
+</html>
